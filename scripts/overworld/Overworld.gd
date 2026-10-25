@@ -2,10 +2,18 @@ extends Node2D
 
 const TILESET: TileSet = preload("res://resources/tilesets/overworld_tileset.tres")
 const TALL_GRASS_SCENE: PackedScene = preload("res://scenes/overworld/TallGrass.tscn")
+const ROUTE29_ENCOUNTER_TABLE: EncounterTable = preload("res://resources/pokemon/route29_encounter_table.tres")
 
+var tint_tween: Tween
+
+@onready var day_night_modulate: CanvasModulate = $DayNightModulate
 @onready var ground: TileMapLayer = $Ground
 @onready var upper_ground: TileMapLayer = $UpperGround
 @onready var tall_grass_container: Node2D = $TallGrassContainer
+@onready var signpost: Signpost = $Signpost
+@onready var npc: NPC = $NPC
+@onready var start_menu_ui: StartMenuUI = $StartMenuUI
+@onready var bag_ui: BagUI = $BagUI
 
 
 func _ready() -> void:
@@ -13,6 +21,36 @@ func _ready() -> void:
 	var player: Node2D = get_node_or_null("Player")
 	if player and player.has_method("_resolve_map_layers"):
 		player._resolve_map_layers()
+	
+	if start_menu_ui and bag_ui:
+		start_menu_ui.bind_bag_ui(bag_ui)
+	
+	var tm: Node = get_node_or_null("/root/TimeManager")
+	if tm:
+		if not tm.time_period_changed.is_connected(_on_time_period_changed):
+			tm.time_period_changed.connect(_on_time_period_changed)
+		if tm.has_method("get_target_tint"):
+			apply_time_tint(tm.get_target_tint(), 0.0)
+
+
+func _on_time_period_changed(_new_period: int, _period_name: String, target_color: Color) -> void:
+	var tm: Node = get_node_or_null("/root/TimeManager")
+	var dur: float = 0.0
+	if tm and tm.get("transition_duration") != null:
+		dur = float(tm.get("transition_duration"))
+	apply_time_tint(target_color, dur)
+
+
+func apply_time_tint(target_color: Color, duration: float = 0.0) -> void:
+	if not day_night_modulate:
+		return
+	if tint_tween and tint_tween.is_valid():
+		tint_tween.kill()
+	if duration <= 0.0:
+		day_night_modulate.color = target_color
+	else:
+		tint_tween = create_tween()
+		tint_tween.tween_property(day_night_modulate, "color", target_color, duration)
 
 
 func _build_town_map() -> void:
@@ -64,6 +102,7 @@ func _build_town_map() -> void:
 	if tall_grass_container and tall_grass_container.get_child_count() == 0:
 		for gx in range(13, 17):
 			for gy in range(9, 12):
-				var grass: Node2D = TALL_GRASS_SCENE.instantiate()
+				var grass: TallGrass = TALL_GRASS_SCENE.instantiate() as TallGrass
 				grass.position = Vector2(gx * 16, gy * 16)
+				grass.encounter_table = ROUTE29_ENCOUNTER_TABLE
 				tall_grass_container.add_child(grass)

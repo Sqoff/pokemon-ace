@@ -1,0 +1,49 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/DialogueBox.gd" id="1_dbox"]
+
+[node name="DialogueBox" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_dbox")
+
+[node name="Panel" type="Panel" parent="."]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 172.0
+offset_right = 312.0
+offset_bottom = 232.0
+
+[node name="SpeakerLabel" type="Label" parent="Panel"]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 4.0
+offset_right = 200.0
+offset_bottom = 20.0
+theme_override_colors/font_color = Color(1, 0.92, 0.45, 1)
+theme_override_font_sizes/font_size = 10
+text = ""
+
+[node name="TextLabel" type="Label" parent="Panel"]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 20.0
+offset_right = 284.0
+offset_bottom = 54.0
+theme_override_font_sizes/font_size = 10
+text = ""
+autowrap_mode = 2
+
+[node name="PromptLabel" type="Label" parent="Panel"]
+layout_mode = 0
+offset_left = 286.0
+offset_top = 40.0
+offset_right = 300.0
+offset_bottom = 56.0
+theme_override_font_sizes/font_size = 10
+text = "▼"

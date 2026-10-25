@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/items/ItemData.gd" id="1_item"]
+
+[resource]
+script = ExtResource("1_item")
+id = "pokeball"
+display_name = "몬스터볼"
+pocket = 1
+description = "야생 포켓몬을 잡기 위한 도구."
+heal_amount = 0
+ball_multiplier = 1.0
+usable_in_overworld = false
+usable_in_battle = true

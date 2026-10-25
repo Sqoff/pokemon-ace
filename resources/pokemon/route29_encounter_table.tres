@@ -1,0 +1,84 @@
+[gd_resource type="Resource" script_class="EncounterTable" load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://resources/pokemon/EncounterTable.gd" id="1_table"]
+[ext_resource type="Script" path="res://resources/pokemon/EncounterEntry.gd" id="2_entry"]
+
+[sub_resource type="Resource" id="Resource_m1"]
+script = ExtResource("2_entry")
+species_id = "pidgey"
+display_name = "구구"
+min_level = 2
+max_level = 4
+weight = 45
+
+[sub_resource type="Resource" id="Resource_m2"]
+script = ExtResource("2_entry")
+species_id = "rattata"
+display_name = "꼬렛"
+min_level = 2
+max_level = 4
+weight = 35
+
+[sub_resource type="Resource" id="Resource_m3"]
+script = ExtResource("2_entry")
+species_id = "cyndaquil"
+display_name = "브케인"
+min_level = 5
+max_level = 5
+weight = 20
+
+[sub_resource type="Resource" id="Resource_d1"]
+script = ExtResource("2_entry")
+species_id = "pidgey"
+display_name = "구구"
+min_level = 2
+max_level = 4
+weight = 45
+
+[sub_resource type="Resource" id="Resource_d2"]
+script = ExtResource("2_entry")
+species_id = "rattata"
+display_name = "꼬렛"
+min_level = 2
+max_level = 4
+weight = 35
+
+[sub_resource type="Resource" id="Resource_d3"]
+script = ExtResource("2_entry")
+species_id = "chikorita"
+display_name = "치코리타"
+min_level = 5
+max_level = 5
+weight = 20
+
+[sub_resource type="Resource" id="Resource_n1"]
+script = ExtResource("2_entry")
+species_id = "hoothoot"
+display_name = "부우부"
+min_level = 2
+max_level = 4
+weight = 55
+
+[sub_resource type="Resource" id="Resource_n2"]
+script = ExtResource("2_entry")
+species_id = "rattata"
+display_name = "꼬렛"
+min_level = 2
+max_level = 4
+weight = 25
+
+[sub_resource type="Resource" id="Resource_n3"]
+script = ExtResource("2_entry")
+species_id = "totodile"
+display_name = "리아코"
+min_level = 5
+max_level = 5
+weight = 20
+
+[resource]
+script = ExtResource("1_table")
+area_name = "29번 도로 (Route 29)"
+encounter_rate = 0.25
+morning_encounters = Array[ExtResource("2_entry")]([SubResource("Resource_m1"), SubResource("Resource_m2"), SubResource("Resource_m3")])
+day_encounters = Array[ExtResource("2_entry")]([SubResource("Resource_d1"), SubResource("Resource_d2"), SubResource("Resource_d3")])
+night_encounters = Array[ExtResource("2_entry")]([SubResource("Resource_n1"), SubResource("Resource_n2"), SubResource("Resource_n3")])

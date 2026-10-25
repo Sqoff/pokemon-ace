@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/items/ItemData.gd" id="1_item"]
+
+[resource]
+script = ExtResource("1_item")
+id = "bicycle"
+display_name = "자전거"
+pocket = 3
+description = "빠르게 이동할 수 있는 접이식 자전거."
+heal_amount = 0
+ball_multiplier = 1.0
+usable_in_overworld = true
+usable_in_battle = false

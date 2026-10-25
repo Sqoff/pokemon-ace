@@ -1,0 +1,42 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/StartMenuUI.gd" id="1_start_menu"]
+
+[node name="StartMenuUI" type="CanvasLayer"]
+layer = 80
+script = ExtResource("1_start_menu")
+
+[node name="RootControl" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="MenuPanel" type="Panel" parent="RootControl"]
+layout_mode = 0
+offset_left = 208.0
+offset_top = 8.0
+offset_right = 312.0
+offset_bottom = 108.0
+
+[node name="TimeLabel" type="Label" parent="RootControl/MenuPanel"]
+layout_mode = 0
+offset_left = 6.0
+offset_top = 6.0
+offset_right = 98.0
+offset_bottom = 24.0
+theme_override_colors/font_color = Color(1, 0.9, 0.4, 1)
+theme_override_font_sizes/font_size = 9
+text = "[낮] 12:00"
+
+[node name="OptionsLabel" type="Label" parent="RootControl/MenuPanel"]
+layout_mode = 0
+offset_left = 6.0
+offset_top = 28.0
+offset_right = 98.0
+offset_bottom = 94.0
+theme_override_font_sizes/font_size = 9
+text = ""

@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/items/ItemData.gd" id="1_item"]
+
+[resource]
+script = ExtResource("1_item")
+id = "potion"
+display_name = "상처약"
+pocket = 0
+description = "포켓몬의 체력을 20 회복한다."
+heal_amount = 20
+ball_multiplier = 1.0
+usable_in_overworld = true
+usable_in_battle = true

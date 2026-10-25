@@ -6,6 +6,7 @@ signal step_completed(current_pos: Vector2, direction: Vector2)
 signal step_blocked(at_pos: Vector2, direction: Vector2)
 signal ledge_jump_started(from_pos: Vector2, to_pos: Vector2, direction: Vector2)
 signal ledge_jump_completed(current_pos: Vector2, direction: Vector2)
+signal interacted_with(target: Node)
 
 const TILE_SIZE: int = 16
 
@@ -18,6 +19,7 @@ const TILE_SIZE: int = 16
 var ground: TileMapLayer
 var upper_ground: TileMapLayer
 var movement_tween: Tween
+var inventory: Inventory
 
 var is_moving: bool = false
 var is_jumping: bool = false
@@ -37,7 +39,14 @@ func _get_scene_manager() -> Node:
 	return get_node_or_null("/root/SceneManager")
 
 
+func _get_dialogue_manager() -> Node:
+	return get_node_or_null("/root/DialogueManager")
+
+
 func _ready() -> void:
+	if inventory == null:
+		inventory = Inventory.new()
+		inventory.populate_starter_items()
 	_resolve_map_layers()
 	snap_to_grid()
 	var sm: Node = _get_scene_manager()
@@ -295,3 +304,52 @@ func set_animation(direction: Vector2, state: String = "_idle") -> void:
 	elif direction.y < 0:
 		animated_sprite_2d.play("up" + state)
 		animated_sprite_2d.flip_h = false
+
+
+func get_facing_interactable() -> Node:
+	var offset: Vector2 = facing_direction.normalized() * TILE_SIZE
+	if collision_ray:
+		collision_ray.position = Vector2(8, 8)
+		collision_ray.target_position = offset
+		collision_ray.force_raycast_update()
+		if collision_ray.is_colliding():
+			var collider: Object = collision_ray.get_collider()
+			if collider is Node and (collider as Node).has_method("interact"):
+				return collider as Node
+	
+	var target_pos: Vector2 = global_position + offset
+	for node in get_tree().get_nodes_in_group("interactables"):
+		if node is Node2D and (node as Node2D).global_position.distance_to(target_pos) < 4.0:
+			if node.has_method("interact"):
+				return node
+	return null
+
+
+func interact() -> bool:
+	var dm: Node = _get_dialogue_manager()
+	if dm and dm.get("is_active"):
+		if dm.has_method("advance_dialogue"):
+			dm.advance_dialogue()
+		return true
+	
+	if is_moving or is_jumping:
+		return false
+	
+	var target: Node = get_facing_interactable()
+	if target != null and target.has_method("interact"):
+		target.interact(self)
+		interacted_with.emit(target)
+		return true
+	return false
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("action_interact"):
+		var dm: Node = _get_dialogue_manager()
+		if dm and dm.get("is_active"):
+			dm.advance_dialogue()
+			get_viewport().set_input_as_handled()
+			return
+		if input_enabled and not is_moving and not is_jumping:
+			if interact():
+				get_viewport().set_input_as_handled()
