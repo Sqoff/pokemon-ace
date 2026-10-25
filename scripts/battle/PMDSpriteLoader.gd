@@ -39,8 +39,15 @@ static func load_texture_safe(res_path: String) -> Texture2D:
 	
 	var tex: Texture2D = null
 	var import_meta_path: String = ProjectSettings.globalize_path(res_path + ".import")
-	if FileAccess.file_exists(import_meta_path) and ResourceLoader.exists(res_path):
+	if (FileAccess.file_exists(import_meta_path) or not OS.has_feature("editor")) and ResourceLoader.exists(res_path):
 		tex = load(res_path) as Texture2D
+	
+	if tex == null and FileAccess.file_exists(res_path):
+		var bytes: PackedByteArray = FileAccess.get_file_as_bytes(res_path)
+		if not bytes.is_empty():
+			var img := Image.new()
+			if img.load_png_from_buffer(bytes) == OK and not img.is_empty():
+				tex = ImageTexture.create_from_image(img)
 	
 	if tex == null:
 		var abs_path: String = ProjectSettings.globalize_path(res_path)
