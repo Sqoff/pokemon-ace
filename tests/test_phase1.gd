@@ -99,6 +99,15 @@ func _run_all_tests() -> void:
 	await player.step_completed
 	_assert_eq_vec2(player.position, Vector2(64, 96), "Player moved cleanly to (64, 96)")
 	
+	# Double-tap directional key sprint check in Overworld
+	var normal_dur: float = player.get_effective_movement_duration()
+	var ow_tap1: bool = player.register_direction_tap("down")
+	var ow_tap2: bool = player.register_direction_tap("down")
+	var sprint_dur: float = player.get_effective_movement_duration()
+	_assert_true(not ow_tap1 and ow_tap2 and player.is_sprinting, "Double-tapping direction key activates sprint in Overworld")
+	_assert_true(sprint_dur < normal_dur, "Overworld sprint step duration (%.3fs) is faster than normal step duration (%.3fs)" % [sprint_dur, normal_dur])
+	player.set_sprinting(false)
+	
 	# ---------------------------------------------------------
 	# [검증 2] 언덕(Ledge) 단방향 점프 및 역방향 차단 검증
 	# ---------------------------------------------------------

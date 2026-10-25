@@ -19,6 +19,7 @@ signal pokeball_aim_started(aim_direction: Vector2)
 signal pokeball_aim_ended()
 signal pokeball_thrown(ball: PokeballProjectile, direction: Vector2, ball_item_id: String)
 signal enrage_state_changed(enraged: bool, speed_mult: float, cooldown_mult: float)
+signal sprint_state_changed(sprinting: bool)
 
 enum AIState {
 	IDLE_WANDER = 0,
@@ -33,6 +34,8 @@ const POKEBALL_PROJECTILE_SCENE: PackedScene = preload("res://scenes/battle/Poke
 @export var team: int = 0
 @export var species_id: String = "cyndaquil"
 @export var base_move_speed: float = 100.0
+@export var sprint_speed_multiplier: float = 1.65
+@export var double_tap_window: float = 0.28
 @export var attack_cooldown: float = 0.20
 @export var iframe_duration: float = 0.45
 
@@ -75,6 +78,10 @@ var enrage_timer: float = 0.0
 var enrage_speed_multiplier: float = 1.0
 var enrage_cooldown_multiplier: float = 1.0
 var is_in_ball_capture: bool = false
+
+var is_sprinting: bool = false
+var _last_dir_tap_key: String = ""
+var _last_dir_tap_timer: float = 0.0
 
 var overhead_hud_node: Node2D = null
 var overhead_hp_fill: ColorRect = null
@@ -182,6 +189,37 @@ func set_move_input(vec: Vector2) -> void:
 func clear_move_input() -> void:
 	simulated_input_vector = Vector2.ZERO
 	velocity = Vector2.ZERO
+	set_sprinting(false)
+
+
+func register_direction_tap(dir_key: String) -> bool:
+	var norm_key: String = dir_key.strip_edges().to_lower()
+	if norm_key.is_empty():
+		return false
+	if norm_key == _last_dir_tap_key and _last_dir_tap_timer > 0.0:
+		_last_dir_tap_timer = 0.0
+		set_sprinting(true)
+		return true
+	_last_dir_tap_key = norm_key
+	_last_dir_tap_timer = double_tap_window
+	return false
+
+
+func set_sprinting(enabled: bool) -> void:
+	if is_sprinting == enabled:
+		return
+	is_sprinting = enabled
+	if animated_sprite_2d:
+		animated_sprite_2d.speed_scale = 1.55 if is_sprinting else 1.0
+	if is_sprinting and is_inside_tree():
+		_spawn_effect_polygon(
+			global_position - facing_direction * 8.0,
+			PackedVector2Array([Vector2(-4, -3), Vector2(4, 0), Vector2(-4, 3)]),
+			Color(0.75, 0.95, 1.0, 0.8),
+			facing_direction.angle(),
+			0.16
+		)
+	sprint_state_changed.emit(is_sprinting)
 
 
 func set_facing_direction(vec_or_key: Variant) -> void:
@@ -201,7 +239,8 @@ func set_facing_direction(vec_or_key: Variant) -> void:
 
 
 func get_effective_move_speed() -> float:
-	return base_move_speed * (enrage_speed_multiplier if is_enraged else 1.0)
+	var mult: float = (enrage_speed_multiplier if is_enraged else 1.0) * (sprint_speed_multiplier if is_sprinting else 1.0)
+	return base_move_speed * mult
 
 
 func get_effective_cooldown_rate() -> float:
@@ -485,13 +524,26 @@ func _physics_process(delta: float) -> void:
 		if invincible_timer <= 0.0 and animated_sprite_2d:
 			animated_sprite_2d.modulate.a = 1.0
 	
+	if _last_dir_tap_timer > 0.0:
+		_last_dir_tap_timer = maxf(0.0, _last_dir_tap_timer - delta)
+	
 	if is_player_controlled:
+		if Input.is_action_just_pressed("move_right") or Input.is_action_just_pressed("ui_right"):
+			register_direction_tap("right")
+		if Input.is_action_just_pressed("move_left") or Input.is_action_just_pressed("ui_left"):
+			register_direction_tap("left")
+		if Input.is_action_just_pressed("move_down") or Input.is_action_just_pressed("ui_down"):
+			register_direction_tap("down")
+		if Input.is_action_just_pressed("move_up") or Input.is_action_just_pressed("ui_up"):
+			register_direction_tap("up")
+		
 		if Input.is_action_just_pressed("throw_ball"):
 			start_aiming_pokeball()
 		elif Input.is_action_just_released("throw_ball") and is_aiming_pokeball:
 			release_pokeball()
 	
 	if is_aiming_pokeball:
+		set_sprinting(false)
 		var aim_vec: Vector2 = _get_input_vector()
 		if aim_vec.length_squared() > 0.0001:
 			facing_direction = aim_vec
@@ -515,6 +567,8 @@ func _physics_process(delta: float) -> void:
 		if action_lock_timer <= 0.0:
 			_play_state_animation("walk", facing_dir_key)
 	else:
+		if is_sprinting:
+			set_sprinting(false)
 		velocity = Vector2.ZERO
 		move_and_slide()
 		if action_lock_timer <= 0.0:

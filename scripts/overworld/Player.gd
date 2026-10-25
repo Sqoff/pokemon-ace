@@ -7,11 +7,14 @@ signal step_blocked(at_pos: Vector2, direction: Vector2)
 signal ledge_jump_started(from_pos: Vector2, to_pos: Vector2, direction: Vector2)
 signal ledge_jump_completed(current_pos: Vector2, direction: Vector2)
 signal interacted_with(target: Node)
+signal sprint_state_changed(sprinting: bool)
 
 const TILE_SIZE: int = 16
 
 @export var map_root: Node2D
 @export var movement_duration: float = 0.16
+@export var sprint_duration_multiplier: float = 0.55
+@export var double_tap_window: float = 0.28
 @export var jump_duration: float = 0.30
 @export var jump_height: float = 10.0
 @export var require_turn_before_move: bool = false
@@ -24,7 +27,10 @@ var party: Array[PokemonInstance] = []
 
 var is_moving: bool = false
 var is_jumping: bool = false
+var is_sprinting: bool = false
 var input_enabled: bool = true
+var _last_dir_tap_key: String = ""
+var _last_dir_tap_timer: float = 0.0
 
 var input_vector: Vector2 = Vector2.ZERO
 var facing_direction: Vector2 = Vector2.DOWN
@@ -83,7 +89,10 @@ func _resolve_map_layers() -> void:
 						break
 
 
-func _physics_process(_delta: float) -> void:
+func _physics_process(delta: float) -> void:
+	if _last_dir_tap_timer > 0.0:
+		_last_dir_tap_timer = maxf(0.0, _last_dir_tap_timer - delta)
+	
 	var sm: Node = _get_scene_manager()
 	if not input_enabled or (sm and sm.get("is_transitioning")):
 		return
@@ -104,10 +113,48 @@ func _physics_process(_delta: float) -> void:
 	if dir_to_process != Vector2.ZERO:
 		try_to_move(dir_to_process)
 	else:
+		if is_sprinting and input_stack.is_empty():
+			set_sprinting(false)
 		set_animation(facing_direction, "_idle")
 
 
+func register_direction_tap(dir_key: String) -> bool:
+	var norm_key: String = dir_key.strip_edges().to_lower()
+	if norm_key.is_empty():
+		return false
+	if norm_key == _last_dir_tap_key and _last_dir_tap_timer > 0.0:
+		_last_dir_tap_timer = 0.0
+		set_sprinting(true)
+		return true
+	_last_dir_tap_key = norm_key
+	_last_dir_tap_timer = double_tap_window
+	return false
+
+
+func set_sprinting(enabled: bool) -> void:
+	if is_sprinting == enabled:
+		return
+	is_sprinting = enabled
+	if animated_sprite_2d:
+		animated_sprite_2d.speed_scale = 1.65 if is_sprinting else 1.0
+	sprint_state_changed.emit(is_sprinting)
+
+
+func get_effective_movement_duration() -> float:
+	return movement_duration * (sprint_duration_multiplier if is_sprinting else 1.0)
+
+
 func update_input_stack() -> void:
+	var just_pressed: Dictionary = {
+		"up": Input.is_action_just_pressed("move_up") or Input.is_action_just_pressed("ui_up"),
+		"down": Input.is_action_just_pressed("move_down") or Input.is_action_just_pressed("ui_down"),
+		"left": Input.is_action_just_pressed("move_left") or Input.is_action_just_pressed("ui_left"),
+		"right": Input.is_action_just_pressed("move_right") or Input.is_action_just_pressed("ui_right"),
+	}
+	for jp_key in just_pressed.keys():
+		if just_pressed[jp_key]:
+			register_direction_tap(jp_key)
+	
 	var directions: Dictionary = {
 		"up": Input.is_action_pressed("move_up") or Input.is_action_pressed("ui_up"),
 		"down": Input.is_action_pressed("move_down") or Input.is_action_pressed("ui_down"),
@@ -247,13 +294,14 @@ func move_step(target_position: Vector2, direction: Vector2) -> void:
 	step_started.emit(start_pos, target_position, direction)
 	set_animation(direction, "_walk")
 	
-	if movement_duration <= 0.0:
+	var step_dur: float = get_effective_movement_duration()
+	if step_dur <= 0.0:
 		position = target_position
 		_on_movement_finished(direction)
 		return
 	
 	movement_tween = create_tween()
-	movement_tween.tween_property(self, "position", target_position, movement_duration)
+	movement_tween.tween_property(self, "position", target_position, step_dur)
 	movement_tween.finished.connect(_on_movement_finished.bind(direction))
 
 

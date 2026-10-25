@@ -174,6 +174,18 @@ func _run_all_tests() -> void:
 			"8-Dir stop '%s' transitions to 'idle_%s'" % [expected_key, expected_key]
 		)
 	
+	# Double-tap directional key sprint check in BattleArena
+	p_actor.global_position = Vector2(200, 240)
+	p_actor.set_sprinting(false)
+	var walk_speed: float = p_actor.get_effective_move_speed()
+	var tap1: bool = p_actor.register_direction_tap("right")
+	var tap2: bool = p_actor.register_direction_tap("right")
+	var sprint_speed: float = p_actor.get_effective_move_speed()
+	_assert_true(not tap1 and tap2 and p_actor.is_sprinting, "Double-tapping direction key activates sprint in BattleArena")
+	_assert_true(sprint_speed > walk_speed * 1.4, "Sprint move speed (%.1f) is faster than normal walk speed (%.1f)" % [sprint_speed, walk_speed])
+	p_actor.clear_move_input()
+	_assert_true(not p_actor.is_sprinting, "Releasing movement input resets sprint state")
+	
 	# Boundary Wall Collision Check (Left, Right, Top, Bottom walls inside 320x240)
 	# 3-A. Left & Top corner push (-1, -1) from near top-left (32, 32)
 	p_actor.global_position = Vector2(32, 32)
