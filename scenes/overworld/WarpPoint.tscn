@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/overworld/WarpPoint.gd" id="1_warp"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_warp"]
+size = Vector2(12, 12)
+
+[node name="WarpPoint" type="Area2D"]
+collision_layer = 4
+collision_mask = 1
+script = ExtResource("1_warp")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(8, 8)
+shape = SubResource("RectangleShape2D_warp")

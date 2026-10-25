@@ -1,0 +1,62 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/overworld/Overworld.gd" id="1_overworld"]
+[ext_resource type="TileSet" path="res://resources/tilesets/overworld_tileset.tres" id="2_tileset"]
+[ext_resource type="PackedScene" path="res://scenes/overworld/Player.tscn" id="3_player"]
+[ext_resource type="PackedScene" path="res://scenes/overworld/LedgeArea.tscn" id="4_ledge"]
+[ext_resource type="PackedScene" path="res://scenes/overworld/WarpPoint.tscn" id="5_warp"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_rock"]
+size = Vector2(14, 14)
+
+[node name="Overworld" type="Node2D"]
+script = ExtResource("1_overworld")
+
+[node name="Ground" type="TileMapLayer" parent="."]
+tile_set = ExtResource("2_tileset")
+
+[node name="UpperGround" type="TileMapLayer" parent="."]
+tile_set = ExtResource("2_tileset")
+
+[node name="TallGrassContainer" type="Node2D" parent="."]
+
+[node name="Obstacles" type="Node2D" parent="."]
+
+[node name="RockObstacle" type="StaticBody2D" parent="Obstacles"]
+position = Vector2(48, 80)
+collision_layer = 1
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Obstacles/RockObstacle"]
+position = Vector2(8, 8)
+shape = SubResource("RectangleShape2D_rock")
+
+[node name="Ledges" type="Node2D" parent="."]
+
+[node name="Ledge1" parent="Ledges" instance=ExtResource("4_ledge")]
+position = Vector2(112, 128)
+jump_direction = Vector2(0, 1)
+
+[node name="Ledge2" parent="Ledges" instance=ExtResource("4_ledge")]
+position = Vector2(128, 128)
+jump_direction = Vector2(0, 1)
+
+[node name="Ledge3" parent="Ledges" instance=ExtResource("4_ledge")]
+position = Vector2(144, 128)
+jump_direction = Vector2(0, 1)
+
+[node name="Ledge4" parent="Ledges" instance=ExtResource("4_ledge")]
+position = Vector2(160, 128)
+jump_direction = Vector2(0, 1)
+
+[node name="Warps" type="Node2D" parent="."]
+
+[node name="PokeCenterDoor" parent="Warps" instance=ExtResource("5_warp")]
+position = Vector2(192, 64)
+target_scene_path = "res://scenes/overworld/PokeCenter.tscn"
+target_spawn_position = Vector2(80, 112)
+target_facing_direction = Vector2(0, -1)
+
+[node name="Player" parent="." node_paths=PackedStringArray("map_root") instance=ExtResource("3_player")]
+position = Vector2(64, 80)
+map_root = NodePath("..")
