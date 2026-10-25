@@ -6,7 +6,7 @@ signal expired()
 
 @export var speed: float = 200.0
 @export var damage: int = 8
-@export var max_lifetime: float = 2.0
+@export var max_lifetime: float = 2.5
 
 var direction: Vector2 = Vector2.RIGHT
 var shooter: Node2D = null
@@ -65,8 +65,8 @@ func _physics_process(delta: float) -> void:
 		if _try_hit_body(body):
 			return
 	
-	# Despawn if outside 320x240 arena bounds
-	if global_position.x < -16.0 or global_position.x > 336.0 or global_position.y < -16.0 or global_position.y > 256.0:
+	# Despawn if outside 640x480 arena bounds
+	if global_position.x < -32.0 or global_position.x > 672.0 or global_position.y < -32.0 or global_position.y > 512.0:
 		expired.emit()
 		queue_free()
 

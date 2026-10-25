@@ -17,75 +17,75 @@ static func _ensure_initialized() -> void:
 	var defaults: Array[MoveData] = [
 		MoveData.create(
 			"tackle", "몸통박치기", "Normal", MoveData.Pattern.MELEE_LUNGE,
-			40, 100, 35, 0.6, 28.0, 0.0, 18.0, "", 0, Color(0.95, 0.95, 0.9, 1.0)
+			40, 100, 35, 1.2, 28.0, 0.0, 18.0, "", 0, Color(0.95, 0.95, 0.9, 1.0)
 		),
 		MoveData.create(
 			"ember", "불꽃세례", "Fire", MoveData.Pattern.PROJECTILE,
-			40, 100, 25, 0.7, 180.0, 210.0, 0.0, "", 0, Color(1.0, 0.42, 0.15, 1.0)
+			40, 100, 25, 1.35, 260.0, 210.0, 0.0, "", 0, Color(1.0, 0.42, 0.15, 1.0)
 		),
 		MoveData.create(
 			"leer", "째려보기", "Normal", MoveData.Pattern.DEBUFF_WAVE,
-			0, 100, 30, 0.8, 64.0, 0.0, 0.0, "defense", 1, Color(0.95, 0.8, 0.2, 1.0)
+			0, 100, 30, 1.1, 64.0, 0.0, 0.0, "defense", 1, Color(0.95, 0.8, 0.2, 1.0)
 		),
 		MoveData.create(
 			"quick_attack", "전광석화", "Normal", MoveData.Pattern.QUICK_DASH,
-			40, 100, 30, 0.45, 56.0, 0.0, 48.0, "", 0, Color(0.75, 0.95, 1.0, 1.0)
+			40, 100, 30, 1.0, 56.0, 0.0, 48.0, "", 0, Color(0.75, 0.95, 1.0, 1.0)
 		),
 		MoveData.create(
 			"water_gun", "물대포", "Water", MoveData.Pattern.PROJECTILE,
-			40, 100, 25, 0.7, 180.0, 205.0, 0.0, "", 0, Color(0.25, 0.65, 1.0, 1.0)
+			40, 100, 25, 1.35, 260.0, 205.0, 0.0, "", 0, Color(0.25, 0.65, 1.0, 1.0)
 		),
 		MoveData.create(
 			"razor_leaf", "잎날가르기", "Grass", MoveData.Pattern.PROJECTILE,
-			55, 95, 25, 0.75, 180.0, 220.0, 0.0, "", 0, Color(0.3, 0.85, 0.35, 1.0)
+			55, 95, 25, 1.35, 260.0, 220.0, 0.0, "", 0, Color(0.3, 0.85, 0.35, 1.0)
 		),
 		MoveData.create(
 			"gust", "바람일으키기", "Flying", MoveData.Pattern.PROJECTILE,
-			40, 100, 35, 0.65, 170.0, 200.0, 0.0, "", 0, Color(0.75, 0.9, 1.0, 1.0)
+			40, 100, 35, 1.35, 250.0, 200.0, 0.0, "", 0, Color(0.75, 0.9, 1.0, 1.0)
 		),
 		MoveData.create(
 			"scratch", "할퀴기", "Normal", MoveData.Pattern.MELEE_LUNGE,
-			40, 100, 35, 0.6, 28.0, 0.0, 16.0, "", 0, Color(0.95, 0.9, 0.85, 1.0)
+			40, 100, 35, 1.2, 28.0, 0.0, 16.0, "", 0, Color(0.95, 0.9, 0.85, 1.0)
 		),
 		MoveData.create(
 			"peck", "쪼기", "Flying", MoveData.Pattern.MELEE_LUNGE,
-			35, 100, 35, 0.55, 28.0, 0.0, 18.0, "", 0, Color(0.85, 0.9, 1.0, 1.0)
+			35, 100, 35, 1.15, 28.0, 0.0, 18.0, "", 0, Color(0.85, 0.9, 1.0, 1.0)
 		),
 		MoveData.create(
 			"growl", "울음소리", "Normal", MoveData.Pattern.DEBUFF_WAVE,
-			0, 100, 40, 0.8, 64.0, 0.0, 0.0, "attack", 1, Color(1.0, 0.65, 0.75, 1.0)
+			0, 100, 40, 1.1, 64.0, 0.0, 0.0, "attack", 1, Color(1.0, 0.65, 0.75, 1.0)
 		),
 		MoveData.create(
 			"tail_whip", "꼬리흔들기", "Normal", MoveData.Pattern.DEBUFF_WAVE,
-			0, 100, 30, 0.8, 64.0, 0.0, 0.0, "defense", 1, Color(0.95, 0.85, 0.4, 1.0)
+			0, 100, 30, 1.1, 64.0, 0.0, 0.0, "defense", 1, Color(0.95, 0.85, 0.4, 1.0)
 		),
 		MoveData.create(
 			"sand_attack", "모래뿌리기", "Normal", MoveData.Pattern.DEBUFF_WAVE,
-			0, 100, 15, 0.8, 64.0, 0.0, 0.0, "defense", 1, Color(0.82, 0.68, 0.42, 1.0)
+			0, 100, 15, 1.1, 64.0, 0.0, 0.0, "defense", 1, Color(0.82, 0.68, 0.42, 1.0)
 		),
 		MoveData.create(
 			"rage", "분노", "Normal", MoveData.Pattern.MELEE_LUNGE,
-			20, 100, 20, 0.5, 28.0, 0.0, 20.0, "", 0, Color(1.0, 0.35, 0.35, 1.0)
+			20, 100, 20, 1.05, 28.0, 0.0, 20.0, "", 0, Color(1.0, 0.35, 0.35, 1.0)
 		),
 		MoveData.create(
 			"hyper_fang", "필살앞니", "Normal", MoveData.Pattern.MELEE_LUNGE,
-			80, 90, 15, 0.85, 30.0, 0.0, 22.0, "", 0, Color(1.0, 0.85, 0.75, 1.0)
+			80, 90, 15, 1.45, 30.0, 0.0, 22.0, "", 0, Color(1.0, 0.85, 0.75, 1.0)
 		),
 		MoveData.create(
 			"fury_swipes", "마구할퀴기", "Normal", MoveData.Pattern.QUICK_DASH,
-			36, 85, 15, 0.55, 48.0, 0.0, 36.0, "", 0, Color(0.95, 0.95, 0.85, 1.0)
+			36, 85, 15, 1.15, 48.0, 0.0, 36.0, "", 0, Color(0.95, 0.95, 0.85, 1.0)
 		),
 		MoveData.create(
 			"defense_curl", "웅크리기", "Normal", MoveData.Pattern.DEBUFF_WAVE,
-			0, 100, 40, 0.8, 56.0, 0.0, 0.0, "attack", 1, Color(0.75, 0.85, 1.0, 1.0)
+			0, 100, 40, 1.1, 56.0, 0.0, 0.0, "attack", 1, Color(0.75, 0.85, 1.0, 1.0)
 		),
 		MoveData.create(
 			"synthesis", "광합성", "Grass", MoveData.Pattern.DEBUFF_WAVE,
-			0, 100, 5, 1.0, 56.0, 0.0, 0.0, "attack", 1, Color(0.45, 0.95, 0.45, 1.0)
+			0, 100, 5, 1.5, 56.0, 0.0, 0.0, "attack", 1, Color(0.45, 0.95, 0.45, 1.0)
 		),
 		MoveData.create(
 			"hypnosis", "최면술", "Normal", MoveData.Pattern.DEBUFF_WAVE,
-			0, 60, 20, 0.9, 64.0, 0.0, 0.0, "defense", 1, Color(0.75, 0.5, 0.95, 1.0)
+			0, 60, 20, 1.35, 64.0, 0.0, 0.0, "defense", 1, Color(0.75, 0.5, 0.95, 1.0)
 		),
 	]
 	

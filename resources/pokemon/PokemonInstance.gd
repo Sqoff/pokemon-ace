@@ -117,7 +117,7 @@ func recalculate_stats(restore_full_hp: bool = false) -> void:
 		return
 	var lv: int = maxi(1, level)
 	var prev_max: int = max_hp
-	max_hp = int(((data.base_hp + iv_hp) * 2 * lv) / 100.0) + lv + 10
+	max_hp = (int(((data.base_hp + iv_hp) * 2 * lv) / 100.0) + lv + 14) * 2
 	attack = int(((data.base_attack + iv_atk) * 2 * lv) / 100.0) + 5
 	defense = int(((data.base_defense + iv_def) * 2 * lv) / 100.0) + 5
 	speed = int(((data.base_speed + iv_spd) * 2 * lv) / 100.0) + 5

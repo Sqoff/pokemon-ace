@@ -8,8 +8,8 @@ signal pokemon_captured(captured_pokemon: PokemonInstance)
 signal pokemon_capture_failed(wild_pokemon: PokemonInstance, shakes_done: int)
 signal battle_ended(result: Dictionary)
 
-const ARENA_WIDTH: float = 320.0
-const ARENA_HEIGHT: float = 240.0
+const ARENA_WIDTH: float = 640.0
+const ARENA_HEIGHT: float = 480.0
 const WALL_THICKNESS: float = 16.0
 const POKEBALL_PROJECTILE_SCENE: PackedScene = preload("res://scenes/battle/PokeballProjectile.tscn")
 
@@ -24,6 +24,7 @@ var auto_exit_on_battle_end: bool = false
 @onready var player_actor: PokemonActor = $PlayerPokemon
 @onready var enemy_actor: PokemonActor = $EnemyPokemon
 @onready var projectiles_container: Node2D = $Projectiles
+@onready var battle_camera: Camera2D = get_node_or_null("BattleCamera") as Camera2D
 @onready var battle_hud: BattleHUD = $HUDLayer/HUDRoot
 @onready var player_stat_label: Label = $HUDLayer/HUDRoot/PlayerStatLabel
 @onready var enemy_stat_label: Label = $HUDLayer/HUDRoot/EnemyStatLabel
@@ -39,6 +40,11 @@ func _ready() -> void:
 	if sm and sm.get("battle_snapshot") is Dictionary:
 		snap = sm.get("battle_snapshot")
 	setup_from_snapshot(snap)
+
+
+func _process(_delta: float) -> void:
+	if battle_camera != null and player_actor != null and is_instance_valid(player_actor):
+		battle_camera.global_position = player_actor.global_position
 
 
 static func calculate_catch_formula_value(max_hp: int, current_hp: int, catch_rate: int, ball_multiplier: float = 1.0) -> float:

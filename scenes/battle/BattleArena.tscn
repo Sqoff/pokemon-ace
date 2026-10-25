@@ -5,100 +5,100 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/BattleHUD.tscn" id="3_hud"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_hwall"]
-size = Vector2(340, 16)
+size = Vector2(660, 16)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_vwall"]
-size = Vector2(16, 260)
+size = Vector2(16, 500)
 
 [node name="BattleArena" type="Node2D"]
 script = ExtResource("1_arena")
 
 [node name="OuterBackground" type="ColorRect" parent="."]
-offset_right = 320.0
-offset_bottom = 240.0
+offset_right = 640.0
+offset_bottom = 480.0
 color = Color(0.16, 0.3, 0.18, 1)
 
 [node name="TopHudBackdrop" type="ColorRect" parent="."]
-offset_right = 320.0
-offset_bottom = 37.0
+offset_right = 640.0
+offset_bottom = 36.0
 color = Color(0.11, 0.16, 0.22, 1)
 
 [node name="BottomHudBackdrop" type="ColorRect" parent="."]
-offset_top = 175.0
-offset_right = 320.0
-offset_bottom = 240.0
+offset_top = 444.0
+offset_right = 640.0
+offset_bottom = 480.0
 color = Color(0.11, 0.16, 0.22, 1)
 
 [node name="ArenaTurfTrim" type="ColorRect" parent="."]
-offset_left = 14.0
-offset_top = 37.0
-offset_right = 306.0
-offset_bottom = 175.0
+offset_left = 18.0
+offset_top = 34.0
+offset_right = 622.0
+offset_bottom = 446.0
 color = Color(0.25, 0.46, 0.27, 1)
 
 [node name="ArenaRingFloor" type="ColorRect" parent="."]
-offset_left = 18.0
+offset_left = 24.0
 offset_top = 40.0
-offset_right = 302.0
-offset_bottom = 172.0
+offset_right = 616.0
+offset_bottom = 440.0
 color = Color(0.86, 0.8, 0.62, 1)
 
 [node name="ArenaCourtLines" type="Node2D" parent="."]
 
 [node name="CourtTopLine" type="ColorRect" parent="ArenaCourtLines"]
-offset_left = 22.0
-offset_top = 43.0
-offset_right = 298.0
-offset_bottom = 45.0
+offset_left = 30.0
+offset_top = 46.0
+offset_right = 610.0
+offset_bottom = 48.0
 color = Color(0.97, 0.95, 0.86, 0.88)
 
 [node name="CourtBottomLine" type="ColorRect" parent="ArenaCourtLines"]
-offset_left = 22.0
-offset_top = 167.0
-offset_right = 298.0
-offset_bottom = 169.0
+offset_left = 30.0
+offset_top = 432.0
+offset_right = 610.0
+offset_bottom = 434.0
 color = Color(0.97, 0.95, 0.86, 0.88)
 
 [node name="CourtLeftLine" type="ColorRect" parent="ArenaCourtLines"]
-offset_left = 22.0
-offset_top = 43.0
-offset_right = 24.0
-offset_bottom = 169.0
+offset_left = 30.0
+offset_top = 46.0
+offset_right = 32.0
+offset_bottom = 434.0
 color = Color(0.97, 0.95, 0.86, 0.88)
 
 [node name="CourtRightLine" type="ColorRect" parent="ArenaCourtLines"]
-offset_left = 296.0
-offset_top = 43.0
-offset_right = 298.0
-offset_bottom = 169.0
+offset_left = 608.0
+offset_top = 46.0
+offset_right = 610.0
+offset_bottom = 434.0
 color = Color(0.97, 0.95, 0.86, 0.88)
 
 [node name="ArenaCenterLine" type="ColorRect" parent="."]
-offset_left = 159.0
-offset_top = 43.0
-offset_right = 161.0
-offset_bottom = 169.0
+offset_left = 319.0
+offset_top = 46.0
+offset_right = 321.0
+offset_bottom = 434.0
 color = Color(0.97, 0.95, 0.86, 0.85)
 
 [node name="CenterCircleOuter" type="Polygon2D" parent="."]
-position = Vector2(160, 106)
+position = Vector2(320, 240)
 color = Color(0.97, 0.95, 0.86, 0.85)
-polygon = PackedVector2Array(0, -22, 11, -19, 19, -11, 22, 0, 19, 11, 11, 19, 0, 22, -11, 19, -19, 11, -22, 0, -19, -11, -11, -19)
+polygon = PackedVector2Array(0, -36, 18, -31, 31, -18, 36, 0, 31, 18, 18, 31, 0, 36, -18, 31, -31, 18, -36, 0, -31, -18, -18, -31)
 
 [node name="CenterCircleInner" type="Polygon2D" parent="."]
-position = Vector2(160, 106)
+position = Vector2(320, 240)
 color = Color(0.86, 0.8, 0.62, 1)
-polygon = PackedVector2Array(0, -19, 9.5, -16.5, 16.5, -9.5, 19, 0, 16.5, 9.5, 9.5, 16.5, 0, 19, -9.5, 16.5, -16.5, 9.5, -19, 0, -16.5, -9.5, -9.5, -16.5)
+polygon = PackedVector2Array(0, -32, 16, -27.5, 27.5, -16, 32, 0, 27.5, 16, 16, 27.5, 0, 32, -16, 27.5, -27.5, 16, -32, 0, -27.5, -16, -16, -27.5)
 
 [node name="CenterCircleButton" type="Polygon2D" parent="."]
-position = Vector2(160, 106)
+position = Vector2(320, 240)
 color = Color(0.97, 0.95, 0.86, 0.9)
-polygon = PackedVector2Array(0, -5, 4, -4, 5, 0, 4, 4, 0, 5, -4, 4, -5, 0, -4, -4)
+polygon = PackedVector2Array(0, -7, 5, -5, 7, 0, 5, 5, 0, 7, -5, 5, -7, 0, -5, -5)
 
 [node name="Walls" type="Node2D" parent="."]
 
 [node name="TopWall" type="StaticBody2D" parent="Walls"]
-position = Vector2(160, 8)
+position = Vector2(320, 8)
 collision_layer = 1
 collision_mask = 7
 
@@ -106,7 +106,7 @@ collision_mask = 7
 shape = SubResource("RectangleShape2D_hwall")
 
 [node name="BottomWall" type="StaticBody2D" parent="Walls"]
-position = Vector2(160, 232)
+position = Vector2(320, 472)
 collision_layer = 1
 collision_mask = 7
 
@@ -114,7 +114,7 @@ collision_mask = 7
 shape = SubResource("RectangleShape2D_hwall")
 
 [node name="LeftWall" type="StaticBody2D" parent="Walls"]
-position = Vector2(8, 120)
+position = Vector2(8, 240)
 collision_layer = 1
 collision_mask = 7
 
@@ -122,7 +122,7 @@ collision_mask = 7
 shape = SubResource("RectangleShape2D_vwall")
 
 [node name="RightWall" type="StaticBody2D" parent="Walls"]
-position = Vector2(312, 120)
+position = Vector2(632, 240)
 collision_layer = 1
 collision_mask = 7
 
@@ -132,16 +132,25 @@ shape = SubResource("RectangleShape2D_vwall")
 [node name="Projectiles" type="Node2D" parent="."]
 
 [node name="PlayerPokemon" parent="." instance=ExtResource("2_actor")]
-position = Vector2(88, 112)
+position = Vector2(180, 240)
 is_player_controlled = true
 team = 0
 species_id = "cyndaquil"
 
 [node name="EnemyPokemon" parent="." instance=ExtResource("2_actor")]
-position = Vector2(232, 112)
+position = Vector2(460, 240)
 is_player_controlled = false
 team = 1
 species_id = "pidgey"
+
+[node name="BattleCamera" type="Camera2D" parent="."]
+position = Vector2(180, 240)
+enabled = true
+zoom = Vector2(0.75, 0.75)
+limit_left = 0
+limit_top = 0
+limit_right = 640
+limit_bottom = 480
 
 [node name="HUDLayer" type="CanvasLayer" parent="."]
 layer = 10

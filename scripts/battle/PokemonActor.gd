@@ -37,7 +37,7 @@ const POKEBALL_PROJECTILE_SCENE: PackedScene = preload("res://scenes/battle/Poke
 @export var iframe_duration: float = 0.45
 
 @export var ai_enabled: bool = false
-@export var ai_detect_range: float = 150.0
+@export var ai_detect_range: float = 320.0
 @export var ai_attack_range: float = 44.0
 
 var pokemon_instance: PokemonInstance = null
@@ -48,6 +48,8 @@ var current_action: String = "idle"
 var simulated_input_vector: Vector2 = Vector2.ZERO
 var action_lock_timer: float = 0.0
 var cooldown_timer: float = 0.0
+var shared_cooldown: float = 0.0
+var shared_cooldown_max: float = 1.2
 var invincible_timer: float = 0.0
 var slot_cooldowns: Array[float] = [0.0, 0.0, 0.0, 0.0]
 
@@ -129,6 +131,7 @@ func setup_from_instance(inst: PokemonInstance, p_is_player: bool = false, initi
 
 func _reset_slot_cooldowns() -> void:
 	slot_cooldowns = [0.0, 0.0, 0.0, 0.0]
+	shared_cooldown = 0.0
 	cooldown_timer = 0.0
 	action_lock_timer = 0.0
 
@@ -464,6 +467,8 @@ func _physics_process(delta: float) -> void:
 			clear_enrage_state()
 	
 	var cd_delta: float = delta * get_effective_cooldown_rate()
+	if shared_cooldown > 0.0:
+		shared_cooldown = maxf(0.0, shared_cooldown - cd_delta)
 	if cooldown_timer > 0.0:
 		cooldown_timer = maxf(0.0, cooldown_timer - cd_delta)
 	if action_lock_timer > 0.0:
@@ -529,8 +534,8 @@ func _physics_process(delta: float) -> void:
 
 func get_slot_cooldown(slot_index: int) -> float:
 	if slot_index < 0 or slot_index >= slot_cooldowns.size():
-		return 0.0
-	return slot_cooldowns[slot_index]
+		return shared_cooldown
+	return maxf(shared_cooldown, slot_cooldowns[slot_index])
 
 
 func use_move(slot_index: int, override_dir: Vector2 = Vector2.ZERO) -> bool:
@@ -550,6 +555,9 @@ func use_move(slot_index: int, override_dir: Vector2 = Vector2.ZERO) -> bool:
 		_spawn_floating_text("PP 부족!", Color(1.0, 0.35, 0.35))
 		return false
 	
+	if shared_cooldown > 0.0:
+		move_failed_cooldown.emit(slot_index, shared_cooldown)
+		return false
 	if slot_index >= 0 and slot_index < slot_cooldowns.size() and slot_cooldowns[slot_index] > 0.0:
 		move_failed_cooldown.emit(slot_index, slot_cooldowns[slot_index])
 		return false
@@ -569,9 +577,12 @@ func use_move(slot_index: int, override_dir: Vector2 = Vector2.ZERO) -> bool:
 	move_inst.consume_pp(1)
 	pokemon_instance.sync_moves_array()
 	
-	if slot_index >= 0 and slot_index < slot_cooldowns.size():
-		slot_cooldowns[slot_index] = maxf(0.05, mdata.cooldown)
-	cooldown_timer = minf(attack_cooldown, mdata.cooldown)
+	var cd_dur: float = maxf(0.1, mdata.cooldown)
+	shared_cooldown_max = cd_dur
+	shared_cooldown = cd_dur
+	cooldown_timer = cd_dur
+	for i in range(slot_cooldowns.size()):
+		slot_cooldowns[i] = cd_dur
 	action_lock_timer = 0.22
 	_play_state_animation("attack", facing_dir_key, true)
 	

@@ -96,6 +96,23 @@ func _run_all_tests() -> void:
 	_assert_true(p_actor.global_position.x > pos_before_lunge.x, "Slot 0 MELEE_LUNGE moved actor forward (%s -> %s)" % [str(pos_before_lunge), str(p_actor.global_position)])
 	_assert_true(hud.get_slot_text(0).contains("%d/%d" % [pp0_after, p_mon.get_move_instance(0).max_pp]), "BattleHUD Slot 0 label updated PP to %d/%d" % [pp0_after, p_mon.get_move_instance(0).max_pp])
 	
+	# Shared cooldown verification: all 4 slots enter cooldown simultaneously & block other slots
+	var all_slots_on_cd: bool = (
+		p_actor.get_slot_cooldown(0) > 0.0
+		and p_actor.get_slot_cooldown(1) > 0.0
+		and p_actor.get_slot_cooldown(2) > 0.0
+		and p_actor.get_slot_cooldown(3) > 0.0
+	)
+	var all_hud_bars_on_cd: bool = (
+		hud.get_slot_cooldown_ratio(0) > 0.0
+		and hud.get_slot_cooldown_ratio(1) > 0.0
+		and hud.get_slot_cooldown_ratio(2) > 0.0
+		and hud.get_slot_cooldown_ratio(3) > 0.0
+	)
+	_assert_true(all_slots_on_cd and all_hud_bars_on_cd, "Shared cooldown activated across all 4 move slots and HUD cooldown bars after casting slot 0")
+	var blocked_by_shared_cd: bool = not p_actor.use_move(1, Vector2.RIGHT)
+	_assert_true(blocked_by_shared_cd, "Casting slot 1 while shared cooldown is active is blocked")
+	
 	# 1-2. Slot 1: 불꽃세례 (PROJECTILE)
 	p_actor.global_position = Vector2(100, 120)
 	e_actor.global_position = Vector2(170, 120)
@@ -247,9 +264,9 @@ func _run_all_tests() -> void:
 	e_actor.reset_cooldowns()
 	w_mon.restore_all_pp()
 	
-	# 4-A. Far distance (220px > ai_detect_range 150px) -> IDLE_WANDER
-	p_actor.global_position = Vector2(40, 180)
-	e_actor.global_position = Vector2(260, 60)
+	# 4-A. Far distance (650px > ai_detect_range 320px) -> IDLE_WANDER
+	p_actor.global_position = Vector2(40, 420)
+	e_actor.global_position = Vector2(580, 60)
 	e_actor.set_ai_state(PokemonActor.AIState.IDLE_WANDER)
 	e_actor.set_ai_enabled(true, p_actor)
 	await _wait_frames(6)

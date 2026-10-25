@@ -8,7 +8,7 @@ signal catch_failed(enemy: PokemonActor, pokemon: PokemonInstance, shakes_done: 
 signal expired()
 
 @export var speed: float = 190.0
-@export var max_lifetime: float = 2.0
+@export var max_lifetime: float = 2.5
 @export var arc_height: float = 22.0
 @export var shake_interval: float = 0.06
 
@@ -126,7 +126,7 @@ func _physics_process(delta: float) -> void:
 		if _try_hit_body(body):
 			return
 	
-	if global_position.x < -16.0 or global_position.x > 336.0 or global_position.y < -16.0 or global_position.y > 256.0:
+	if global_position.x < -32.0 or global_position.x > 672.0 or global_position.y < -32.0 or global_position.y > 512.0:
 		expired.emit()
 		queue_free()
 

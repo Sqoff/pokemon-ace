@@ -186,15 +186,15 @@ func _run_all_tests() -> void:
 		"TopWall & LeftWall keep PokemonActor inside arena bounds (pos=%s >= (16, 16))" % str(p_actor.global_position)
 	)
 	
-	# 3-B. Right & Bottom corner push (1, 1) from near bottom-right (288, 208)
-	p_actor.global_position = Vector2(288, 208)
+	# 3-B. Right & Bottom corner push (1, 1) from near bottom-right (608, 448)
+	p_actor.global_position = Vector2(608, 448)
 	p_actor.set_move_input(Vector2(1, 1))
 	await _wait_frames(25)
 	p_actor.clear_move_input()
 	print("PlayerPokemon pos after pushing into Bottom-Right wall: ", p_actor.global_position)
 	_assert_true(
-		p_actor.global_position.x <= 304.0 and p_actor.global_position.y <= 224.0,
-		"RightWall & BottomWall keep PokemonActor inside 320x240 arena bounds (pos=%s <= (304, 224))" % str(p_actor.global_position)
+		p_actor.global_position.x <= 624.0 and p_actor.global_position.y <= 464.0,
+		"RightWall & BottomWall keep PokemonActor inside 640x480 arena bounds (pos=%s <= (624, 464))" % str(p_actor.global_position)
 	)
 	
 	# ---------------------------------------------------------

@@ -279,21 +279,21 @@ func _refresh_cooldown_bars() -> void:
 	if player_actor == null or player_actor.pokemon_instance == null:
 		return
 	var p_mon: PokemonInstance = player_actor.pokemon_instance
+	var shared_max: float = maxf(0.05, player_actor.shared_cooldown_max)
+	var shared_rem: float = clampf(player_actor.shared_cooldown, 0.0, shared_max)
 	for i in range(4):
 		if i >= slot_cooldown_bars.size() or slot_cooldown_bars[i] == null:
 			continue
 		var bar: ProgressBar = slot_cooldown_bars[i]
 		var m_inst: MoveInstance = p_mon.get_move_instance(i)
-		var max_cd: float = m_inst.move_data.cooldown if (m_inst != null and m_inst.move_data != null) else 1.0
-		var rem_cd: float = player_actor.get_slot_cooldown(i)
-		bar.max_value = maxf(0.05, max_cd)
-		bar.value = clampf(rem_cd, 0.0, bar.max_value)
+		bar.max_value = shared_max
+		bar.value = shared_rem
 		
 		if i < _slot_card_styles.size() and _slot_card_styles[i] != null:
 			var st: StyleBoxFlat = _slot_card_styles[i]
 			var zero_pp: bool = m_inst != null and m_inst.current_pp <= 0
 			if not zero_pp:
-				if rem_cd > 0.01:
+				if shared_rem > 0.01:
 					st.bg_color = Color(0.90, 0.93, 0.96, 1.0)
 				else:
 					st.bg_color = Color(0.99, 0.99, 0.96, 1.0)
