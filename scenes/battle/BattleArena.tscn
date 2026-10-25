@@ -1,8 +1,9 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/battle/BattleArena.gd" id="1_arena"]
 [ext_resource type="PackedScene" path="res://scenes/battle/PokemonActor.tscn" id="2_actor"]
 [ext_resource type="PackedScene" path="res://scenes/ui/BattleHUD.tscn" id="3_hud"]
+[ext_resource type="PackedScene" path="res://scenes/ui/PartyUI.tscn" id="4_party_ui"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_hwall"]
 size = Vector2(660, 16)
@@ -156,3 +157,5 @@ limit_bottom = 480
 layer = 10
 
 [node name="HUDRoot" parent="HUDLayer" instance=ExtResource("3_hud")]
+
+[node name="BattlePartyUI" parent="HUDLayer" instance=ExtResource("4_party_ui")]

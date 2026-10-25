@@ -193,6 +193,18 @@ offset_bottom = 35.0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_player_box")
 
+[node name="PartyStatusLabel" type="Label" parent="PlayerStatusPanel"]
+layout_mode = 0
+offset_left = 5.0
+offset_top = 2.0
+offset_right = 58.0
+offset_bottom = 16.0
+theme_override_colors/font_color = Color(0.82, 0.22, 0.18, 1)
+theme_override_colors/font_outline_color = Color(1, 0.99, 0.95, 1)
+theme_override_constants/outline_size = 1
+theme_override_font_sizes/font_size = 6
+text = "● [Q/E][Tab]"
+
 [node name="PlayerHPTrack" type="Panel" parent="PlayerStatusPanel"]
 layout_mode = 0
 offset_left = 5.0

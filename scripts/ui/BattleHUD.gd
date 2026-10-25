@@ -25,6 +25,10 @@ const TYPE_KOR_NAMES: Dictionary = {
 
 var player_actor: PokemonActor = null
 var enemy_actor: PokemonActor = null
+var battle_party: Array[PokemonInstance] = []
+var active_party_index: int = 0
+var switch_cooldown: float = 0.0
+var switch_cooldown_max: float = 4.0
 
 var _enemy_hp_fill_style: StyleBoxFlat = null
 var _player_hp_fill_style: StyleBoxFlat = null
@@ -37,6 +41,8 @@ var _slot_card_styles: Array[StyleBoxFlat] = []
 @onready var message_label: Label = $MessageLabel
 
 @onready var top_ball_count_label: Label = get_node_or_null("CenterInfoPanel/TopBallCountLabel") as Label
+@onready var top_catch_hint_label: Label = get_node_or_null("CenterInfoPanel/TopCatchHintLabel") as Label
+@onready var party_status_label: Label = get_node_or_null("PlayerStatusPanel/PartyStatusLabel") as Label
 @onready var right_header_label: Label = get_node_or_null("RightInfoAndMessageBox/RightHeaderLabel") as Label
 
 @onready var slot_cards: Array[Panel] = [
@@ -68,6 +74,7 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	_refresh_cooldown_bars()
+	_refresh_party_switch_display()
 
 
 func _init_dynamic_styles() -> void:
@@ -133,8 +140,53 @@ func refresh_all() -> void:
 	_init_dynamic_styles()
 	_refresh_hp_displays()
 	_refresh_ball_and_status_info()
+	_refresh_party_switch_display()
 	_refresh_move_slots()
 	_refresh_cooldown_bars()
+
+
+func update_party_status(p_party: Array, p_active_idx: int = 0, p_switch_cd: float = 0.0, p_switch_cd_max: float = 4.0) -> void:
+	battle_party.clear()
+	for m in p_party:
+		if m is PokemonInstance:
+			battle_party.append(m as PokemonInstance)
+	active_party_index = p_active_idx
+	switch_cooldown = p_switch_cd
+	switch_cooldown_max = p_switch_cd_max
+	_refresh_party_switch_display()
+	_refresh_ball_and_status_info()
+
+
+func get_party_dots_text() -> String:
+	if battle_party.is_empty():
+		return "●"
+	var dots: String = ""
+	for m in battle_party:
+		if m != null and not m.is_fainted():
+			dots += "●"
+		else:
+			dots += "○"
+	return dots
+
+
+func get_party_status_text() -> String:
+	return party_status_label.text if party_status_label != null else ""
+
+
+func _refresh_party_switch_display() -> void:
+	var dots: String = get_party_dots_text()
+	if party_status_label != null:
+		if switch_cooldown > 0.01:
+			party_status_label.text = "%s 쿨%.1fs" % [dots, switch_cooldown]
+			party_status_label.add_theme_color_override("font_color", Color(0.92, 0.45, 0.15, 1.0))
+		else:
+			party_status_label.text = "%s [Q/E][Tab]" % dots
+			party_status_label.add_theme_color_override("font_color", Color(0.82, 0.22, 0.18, 1.0))
+	if top_catch_hint_label != null:
+		if switch_cooldown > 0.01:
+			top_catch_hint_label.text = "교체 %.1fs" % switch_cooldown
+		else:
+			top_catch_hint_label.text = "[Space]포획"
 
 
 static func get_hp_bar_color(ratio: float) -> Color:
@@ -184,7 +236,8 @@ func _refresh_ball_and_status_info() -> void:
 				status_suffix += " [분노!]"
 			if enemy_actor.defense_stage < 0:
 				status_suffix += " [방어%d]" % enemy_actor.defense_stage
-		right_header_label.text = "● 볼 x%d [Space]%s" % [ball_cnt, status_suffix]
+		var switch_tag: String = " [교체%.1fs]" % switch_cooldown if switch_cooldown > 0.01 else " [Q/E]교체 [Tab]파티"
+		right_header_label.text = "● 볼 x%d [Space]%s%s" % [ball_cnt, switch_tag, status_suffix]
 
 
 func _refresh_hp_displays() -> void:

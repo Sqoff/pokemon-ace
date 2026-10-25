@@ -126,6 +126,7 @@ func capture_overworld_snapshot(wild_pokemon: PokemonInstance = null, encounter_
 	battle_snapshot = {
 		"player_pokemon": lead,
 		"player_pokemon_dict": lead.to_dict() if lead else {},
+		"party": party.duplicate(),
 		"wild_pokemon": active_wild_pokemon,
 		"wild_pokemon_dict": active_wild_pokemon.to_dict() if active_wild_pokemon else {},
 		"return_scene_path": return_scene_path,

@@ -78,6 +78,7 @@ var enrage_timer: float = 0.0
 var enrage_speed_multiplier: float = 1.0
 var enrage_cooldown_multiplier: float = 1.0
 var is_in_ball_capture: bool = false
+var is_battle_paused: bool = false
 
 var is_sprinting: bool = false
 var _last_dir_tap_key: String = ""
@@ -145,6 +146,24 @@ func _reset_slot_cooldowns() -> void:
 
 func reset_cooldowns() -> void:
 	_reset_slot_cooldowns()
+
+
+func apply_shared_cooldown(duration: float = 1.0) -> void:
+	var cd: float = maxf(0.0, duration)
+	shared_cooldown_max = maxf(0.1, cd)
+	shared_cooldown = cd
+	cooldown_timer = cd
+	for i in range(slot_cooldowns.size()):
+		slot_cooldowns[i] = cd
+
+
+func set_battle_paused(paused: bool) -> void:
+	is_battle_paused = paused
+	if paused:
+		velocity = Vector2.ZERO
+		set_sprinting(false)
+		if action_lock_timer <= 0.0:
+			_play_state_animation("idle", facing_dir_key)
 
 
 func clear_invincibility() -> void:
@@ -496,7 +515,7 @@ func _get_input_vector() -> Vector2:
 
 
 func _physics_process(delta: float) -> void:
-	if is_in_ball_capture:
+	if is_in_ball_capture or is_battle_paused:
 		velocity = Vector2.ZERO
 		return
 	

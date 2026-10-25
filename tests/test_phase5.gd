@@ -292,28 +292,136 @@ func _run_all_tests() -> void:
 	start_menu.close_menu()
 	
 	# ---------------------------------------------------------
-	# [검증 4] 전투 패배 시 포켓몬센터 워프 및 파티 전원 HP/PP 완전 회복 검증
+	# [검증 4] 실시간 포켓몬 교체(Q/E 퀵 태그 & Tab 파티 선택) 및 기절 시 연속 출전 -> 전원 기절 시 패배/포켓몬센터 회복 검증
 	# ---------------------------------------------------------
-	print("\n--- [검증 4] 내 포켓몬 HP 0 패배 시 '눈앞이 캄캄해졌다!' 및 포켓몬센터 워프/전체 회복 검증 ---")
+	print("\n--- [검증 4] 실시간 포켓몬 교체(Q/E & Tab, 0.3s 무적/1s 스킬쿨/4s 교체쿨) 및 기절 연속 출전 -> 전원 기절 패배 검증 ---")
 	await scene_mgr.enter_battle_arena(PokemonRegistry.create_instance("rattata", 5, "꼬렛"), {}, 0.02)
 	await _wait_frames(3)
 	
 	var defeat_arena: BattleArena = current_scene as BattleArena
-	_assert_true(defeat_arena != null and defeat_arena.name == "BattleArena", "Entered BattleArena for defeat test")
+	_assert_true(defeat_arena != null and defeat_arena.name == "BattleArena", "Entered BattleArena for switch & defeat test")
+	_assert_true(defeat_arena.battle_party.size() == 2, "BattleArena synced 2 party members ('%s', '%s')" % [
+		defeat_arena.battle_party[0].get_display_name(),
+		defeat_arena.battle_party[1].get_display_name()
+	])
+	_assert_true(defeat_arena.battle_hud.get_party_dots_text() == "●●", "BattleHUD shows '●●' for 2 alive party pokemon")
 	
+	# 4-A. Q/E Quick Tag switch verification
+	defeat_arena.player_actor.global_position = Vector2(212, 236)
+	defeat_arena.player_actor.set_facing_direction("ne")
+	var pre_switch_pos: Vector2 = defeat_arena.player_actor.global_position
+	var pre_switch_dir: String = defeat_arena.player_actor.facing_dir_key
+	
+	var switched_sig_caught: Array[bool] = [false]
+	defeat_arena.pokemon_switched.connect(func(_new_m: PokemonInstance, _old_m: PokemonInstance, _idx: int) -> void:
+		switched_sig_caught[0] = true
+	, CONNECT_ONE_SHOT)
+	
+	var quick_switched: bool = defeat_arena.cycle_switch_pokemon(1) # E key: switch to index 1 (야생리아코)
+	_assert_true(quick_switched and switched_sig_caught[0], "cycle_switch_pokemon(1) switched active pokemon to slot 1 ('야생리아코')")
+	_assert_true(
+		defeat_arena.active_party_index == 1 and defeat_arena.player_pokemon.get_display_name() == "야생리아코",
+		"Active pokemon is now '야생리아코' (index 1)"
+	)
+	_assert_true(
+		defeat_arena.player_actor.global_position.distance_to(pre_switch_pos) < 0.01 and defeat_arena.player_actor.facing_dir_key == pre_switch_dir,
+		"Switch preserved player_actor position %s and facing_dir_key '%s'" % [str(pre_switch_pos), pre_switch_dir]
+	)
+	_assert_true(
+		absf(defeat_arena.player_actor.invincible_timer - 0.3) < 0.05
+		and absf(defeat_arena.player_actor.shared_cooldown - 1.0) < 0.05
+		and absf(defeat_arena.switch_cooldown - 4.0) < 0.05,
+		"Switch applied 0.3s invincibility (%.2f), 1.0s shared skill cooldown (%.2f), and 4.0s switch cooldown (%.2f)" % [
+			defeat_arena.player_actor.invincible_timer,
+			defeat_arena.player_actor.shared_cooldown,
+			defeat_arena.switch_cooldown
+		]
+	)
+	_assert_true(
+		defeat_arena.battle_hud.get_battle_message().contains("돌아와 에이스브케인! 가라 야생리아코!"),
+		"BattleHUD displays switch message: '%s'" % defeat_arena.battle_hud.get_battle_message()
+	)
+	_assert_true(
+		defeat_arena.battle_hud.get_slot_text(1).contains("물대포"),
+		"BattleHUD move slots updated immediately to Totodile's moves ('물대포')"
+	)
+	
+	# Verify 4.0s switch cooldown blocks immediate re-switch
+	var cd_block_caught: Array[bool] = [false]
+	defeat_arena.switch_failed.connect(func(_reason: String) -> void:
+		cd_block_caught[0] = true
+	, CONNECT_ONE_SHOT)
+	var blocked_by_switch_cd: bool = not defeat_arena.cycle_switch_pokemon(-1)
+	_assert_true(
+		blocked_by_switch_cd and cd_block_caught[0] and defeat_arena.battle_hud.get_battle_message().contains("쿨타임"),
+		"Immediate re-switch is blocked during 4.0s switch cooldown"
+	)
+	
+	# 4-B. Tab Party Popup selection verification
+	defeat_arena.switch_cooldown = 0.0
+	var opened_popup: bool = defeat_arena.open_battle_party_menu()
+	_assert_true(
+		opened_popup and defeat_arena.is_party_menu_open and defeat_arena.battle_party_ui.is_open,
+		"open_battle_party_menu() opened BattlePartyUI and set is_party_menu_open=true"
+	)
+	_assert_true(
+		defeat_arena.player_actor.is_battle_paused and defeat_arena.enemy_actor.is_battle_paused,
+		"Player and Enemy actors are paused while BattlePartyUI is open"
+	)
+	# Selecting already-active slot 1 ('야생리아코') should be rejected with message
+	var same_slot_ok: bool = defeat_arena.battle_party_ui.confirm_selection()
+	_assert_true(
+		not same_slot_ok and defeat_arena.battle_party_ui.is_open and defeat_arena.battle_party_ui.get_details_text().contains("이미 전투에"),
+		"Selecting already-active pokemon in BattlePartyUI is rejected with notice"
+	)
+	# Select slot 0 ('에이스브케인') and confirm
+	defeat_arena.battle_party_ui.select_member(0)
+	var tab_switch_ok: bool = defeat_arena.battle_party_ui.confirm_selection()
+	_assert_true(
+		tab_switch_ok and not defeat_arena.is_party_menu_open and not defeat_arena.player_actor.is_battle_paused,
+		"Confirming slot 0 in BattlePartyUI closed menu, unpaused actors, and switched to '에이스브케인'"
+	)
+	_assert_true(
+		defeat_arena.active_party_index == 0 and defeat_arena.player_pokemon.get_display_name() == "에이스브케인",
+		"Active pokemon switched back to '에이스브케인' (index 0) via BattlePartyUI"
+	)
+	
+	# 4-C. Fainting auto-switch to next alive pokemon, then full party wipe -> Defeat & PokeCenter heal
 	var defeat_result_captured: Array[Dictionary] = [{}]
 	defeat_arena.battle_ended.connect(func(res: Dictionary) -> void:
 		defeat_result_captured[0] = res
 	, CONNECT_ONE_SHOT)
 	
-	# Deal fatal damage to player pokemon
+	# Deal fatal damage to 1st pokemon ('에이스브케인') while 2nd ('야생리아코') is alive -> must auto-switch!
+	defeat_arena.player_actor.clear_invincibility()
+	defeat_arena.player_actor.receive_hit(9999)
+	await _wait_frames(2)
+	
+	_assert_true(
+		not defeat_arena.is_battle_resolved and defeat_arena.outcome == "",
+		"Battle continues when 1st pokemon faints while another alive party pokemon exists"
+	)
+	_assert_true(
+		defeat_arena.active_party_index == 1 and defeat_arena.player_pokemon.get_display_name() == "야생리아코",
+		"Automatically sent out next alive pokemon ('야생리아코') upon lead fainting"
+	)
+	_assert_true(
+		defeat_arena.battle_hud.get_battle_message().contains("에이스브케인은(는) 쓰러졌다! 가라 야생리아코!"),
+		"BattleHUD displays faint-replacement message: '%s'" % defeat_arena.battle_hud.get_battle_message()
+	)
+	_assert_true(
+		defeat_arena.battle_hud.get_party_dots_text() == "○●",
+		"BattleHUD party indicator updated to '○●' (slot 0 fainted, slot 1 alive)"
+	)
+	
+	# Now deal fatal damage to the last remaining pokemon ('야생리아코') -> all fainted -> Defeat!
 	defeat_arena.player_actor.clear_invincibility()
 	defeat_arena.player_actor.receive_hit(9999)
 	await _wait_frames(2)
 	
 	_assert_true(
 		defeat_arena.outcome == "defeat" and bool(defeat_result_captured[0].get("defeated", false)),
-		"BattleArena recorded defeat when PlayerPokemon HP reached 0"
+		"BattleArena recorded defeat when ALL party pokemon HP reached 0"
 	)
 	_assert_true(
 		defeat_arena.battle_hud.get_battle_message().contains("눈앞이 캄캄해졌다"),
