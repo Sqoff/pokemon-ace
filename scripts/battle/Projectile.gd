@@ -11,8 +11,11 @@ signal expired()
 var direction: Vector2 = Vector2.RIGHT
 var shooter: Node2D = null
 var shooter_team: int = 0
+var move_data: MoveData = null
 var elapsed: float = 0.0
 var has_hit: bool = false
+
+@onready var visual_poly: Polygon2D = get_node_or_null("Visual") as Polygon2D
 
 
 func _ready() -> void:
@@ -24,13 +27,25 @@ func _ready() -> void:
 		body_entered.connect(_on_body_entered)
 
 
-func setup(p_shooter: Node2D, p_team: int, p_direction: Vector2, p_damage: int, p_speed: float = 200.0) -> void:
+func setup(
+	p_shooter: Node2D,
+	p_team: int,
+	p_direction: Vector2,
+	p_damage: int,
+	p_speed: float = 200.0,
+	p_move_data: MoveData = null
+) -> void:
 	shooter = p_shooter
 	shooter_team = p_team
 	direction = p_direction.normalized() if p_direction.length_squared() > 0.0001 else Vector2.DOWN
 	damage = maxi(1, p_damage)
 	speed = p_speed
+	move_data = p_move_data
 	rotation = direction.angle()
+	if move_data != null:
+		var vis: Polygon2D = get_node_or_null("Visual") as Polygon2D
+		if vis != null:
+			vis.color = move_data.tint_color
 
 
 func _physics_process(delta: float) -> void:
@@ -68,8 +83,15 @@ func _try_hit_body(body: Node) -> bool:
 		var actor: PokemonActor = body as PokemonActor
 		if actor.team != shooter_team:
 			has_hit = true
-			actor.receive_hit(damage, direction)
-			hit_actor.emit(actor, damage)
+			var dealt_dmg: int = damage
+			if move_data != null and shooter is PokemonActor:
+				dealt_dmg = actor.receive_move_hit(shooter as PokemonActor, move_data, direction)
+			else:
+				var hp_before: int = actor.pokemon_instance.current_hp if actor.pokemon_instance else 20
+				actor.receive_hit(damage, direction)
+				var hp_after: int = actor.pokemon_instance.current_hp if actor.pokemon_instance else 0
+				dealt_dmg = maxi(0, hp_before - hp_after)
+			hit_actor.emit(actor, dealt_dmg)
 			queue_free()
 			return true
 		return false

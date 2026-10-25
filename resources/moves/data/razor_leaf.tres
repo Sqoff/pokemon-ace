@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="MoveData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/moves/MoveData.gd" id="1_movedata"]
+
+[resource]
+script = ExtResource("1_movedata")
+move_id = "razor_leaf"
+display_name = "잎날가르기"
+move_type = "Grass"
+pattern = 1
+power = 55
+accuracy = 95
+max_pp = 25
+cooldown = 0.75
+range_px = 180.0
+projectile_speed = 220.0
+dash_distance = 0.0
+debuff_stat = ""
+debuff_stages = 0
+tint_color = Color(0.3, 0.85, 0.35, 1)

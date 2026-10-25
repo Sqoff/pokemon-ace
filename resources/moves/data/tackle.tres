@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="MoveData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/moves/MoveData.gd" id="1_movedata"]
+
+[resource]
+script = ExtResource("1_movedata")
+move_id = "tackle"
+display_name = "몸통박치기"
+move_type = "Normal"
+pattern = 0
+power = 40
+accuracy = 100
+max_pp = 35
+cooldown = 0.6
+range_px = 28.0
+projectile_speed = 0.0
+dash_distance = 18.0
+debuff_stat = ""
+debuff_stages = 0
+tint_color = Color(0.95, 0.95, 0.9, 1)

@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="MoveData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/moves/MoveData.gd" id="1_movedata"]
+
+[resource]
+script = ExtResource("1_movedata")
+move_id = "leer"
+display_name = "째려보기"
+move_type = "Normal"
+pattern = 2
+power = 0
+accuracy = 100
+max_pp = 30
+cooldown = 0.8
+range_px = 64.0
+projectile_speed = 0.0
+dash_distance = 0.0
+debuff_stat = "defense"
+debuff_stages = 1
+tint_color = Color(0.95, 0.8, 0.2, 1)

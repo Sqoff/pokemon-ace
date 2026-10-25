@@ -16,6 +16,7 @@ var last_stat_log: String = ""
 @onready var player_actor: PokemonActor = $PlayerPokemon
 @onready var enemy_actor: PokemonActor = $EnemyPokemon
 @onready var projectiles_container: Node2D = $Projectiles
+@onready var battle_hud: BattleHUD = $HUDLayer/HUDRoot
 @onready var player_stat_label: Label = $HUDLayer/HUDRoot/PlayerStatLabel
 @onready var enemy_stat_label: Label = $HUDLayer/HUDRoot/EnemyStatLabel
 
@@ -57,6 +58,11 @@ func setup_from_snapshot(snapshot: Dictionary = {}) -> void:
 		else:
 			wild_pokemon = PokemonRegistry.create_instance("pidgey", 3, "구구")
 	
+	if player_pokemon != null:
+		player_pokemon.ensure_move_instances()
+	if wild_pokemon != null:
+		wild_pokemon.ensure_move_instances()
+	
 	if player_actor:
 		player_actor.setup_from_instance(player_pokemon, true, "e")
 		if not player_actor.damaged.is_connected(_on_actor_damaged):
@@ -66,10 +72,14 @@ func setup_from_snapshot(snapshot: Dictionary = {}) -> void:
 	
 	if enemy_actor:
 		enemy_actor.setup_from_instance(wild_pokemon, false, "w")
+		enemy_actor.target_actor = player_actor
 		if not enemy_actor.damaged.is_connected(_on_actor_damaged):
 			enemy_actor.damaged.connect(_on_actor_damaged)
 		if not enemy_actor.fainted.is_connected(_on_actor_fainted):
 			enemy_actor.fainted.connect(_on_actor_fainted)
+	
+	if battle_hud:
+		battle_hud.bind_actors(player_actor, enemy_actor)
 	
 	_update_hud()
 	last_stat_log = _format_battle_stat_log()
@@ -84,6 +94,9 @@ func _format_battle_stat_log() -> String:
 
 
 func _update_hud() -> void:
+	if battle_hud:
+		battle_hud.refresh_all()
+		return
 	if player_stat_label and player_pokemon:
 		player_stat_label.text = "%s Lv.%d  HP %d/%d" % [
 			player_pokemon.get_display_name(),

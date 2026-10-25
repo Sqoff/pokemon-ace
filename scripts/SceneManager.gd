@@ -58,6 +58,7 @@ func _exit_tree() -> void:
 	battle_snapshot.clear()
 	PMDSpriteLoader.clear_cache()
 	PokemonRegistry.clear_cache()
+	MoveRegistry.clear_cache()
 
 
 func ensure_default_party() -> void:

@@ -1,0 +1,138 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/BattleHUD.gd" id="1_hud"]
+
+[node name="BattleHUD" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_hud")
+
+[node name="EnemyStatLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 1.0
+offset_right = 164.0
+offset_bottom = 14.0
+theme_override_font_sizes/font_size = 9
+text = "야생 구구 Lv.3  HP 16/16"
+
+[node name="EnemyHPBar" type="ProgressBar" parent="."]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 12.0
+offset_right = 128.0
+offset_bottom = 16.0
+max_value = 16.0
+value = 16.0
+show_percentage = false
+
+[node name="PlayerStatLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 156.0
+offset_top = 1.0
+offset_right = 304.0
+offset_bottom = 14.0
+theme_override_font_sizes/font_size = 9
+horizontal_alignment = 2
+text = "브케인 Lv.5  HP 20/20"
+
+[node name="PlayerHPBar" type="ProgressBar" parent="."]
+layout_mode = 0
+offset_left = 192.0
+offset_top = 12.0
+offset_right = 304.0
+offset_bottom = 16.0
+max_value = 20.0
+value = 20.0
+show_percentage = false
+
+[node name="MessageLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 206.0
+offset_right = 304.0
+offset_bottom = 220.0
+theme_override_colors/font_color = Color(1, 0.96, 0.75, 1)
+theme_override_font_sizes/font_size = 9
+text = ""
+
+[node name="MoveSlotsContainer" type="HBoxContainer" parent="."]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 220.0
+offset_right = 312.0
+offset_bottom = 239.0
+theme_override_constants/separation = 4
+
+[node name="MoveSlot0" type="VBoxContainer" parent="MoveSlotsContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 1
+
+[node name="SlotLabel" type="Label" parent="MoveSlotsContainer/MoveSlot0"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+text = "[1/Z] 몸통박치기 PP 35/35"
+
+[node name="CooldownBar" type="ProgressBar" parent="MoveSlotsContainer/MoveSlot0"]
+custom_minimum_size = Vector2(0, 3)
+layout_mode = 2
+max_value = 1.0
+value = 0.0
+show_percentage = false
+
+[node name="MoveSlot1" type="VBoxContainer" parent="MoveSlotsContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 1
+
+[node name="SlotLabel" type="Label" parent="MoveSlotsContainer/MoveSlot1"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+text = "[2/X] 불꽃세례 PP 25/25"
+
+[node name="CooldownBar" type="ProgressBar" parent="MoveSlotsContainer/MoveSlot1"]
+custom_minimum_size = Vector2(0, 3)
+layout_mode = 2
+max_value = 1.0
+value = 0.0
+show_percentage = false
+
+[node name="MoveSlot2" type="VBoxContainer" parent="MoveSlotsContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 1
+
+[node name="SlotLabel" type="Label" parent="MoveSlotsContainer/MoveSlot2"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+text = "[3/C] 째려보기 PP 30/30"
+
+[node name="CooldownBar" type="ProgressBar" parent="MoveSlotsContainer/MoveSlot2"]
+custom_minimum_size = Vector2(0, 3)
+layout_mode = 2
+max_value = 1.0
+value = 0.0
+show_percentage = false
+
+[node name="MoveSlot3" type="VBoxContainer" parent="MoveSlotsContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 1
+
+[node name="SlotLabel" type="Label" parent="MoveSlotsContainer/MoveSlot3"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+text = "[4/V] 전광석화 PP 30/30"
+
+[node name="CooldownBar" type="ProgressBar" parent="MoveSlotsContainer/MoveSlot3"]
+custom_minimum_size = Vector2(0, 3)
+layout_mode = 2
+max_value = 1.0
+value = 0.0
+show_percentage = false

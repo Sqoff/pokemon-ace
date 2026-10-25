@@ -15,8 +15,10 @@ extends Resource
 @export var iv_def: int = 8
 @export var iv_spd: int = 8
 
-## Stores either move_id strings or MoveInstance resources/dictionaries (Phase 4 ready)
+## Stores either move_id strings or MoveInstance dictionaries
 @export var moves: Array = []
+## Up to 4 MoveInstance resources representing equipped moves and their current/max PP
+@export var move_instances: Array[MoveInstance] = []
 
 
 static func create(p_data: PokemonData, p_level: int = 5, p_nickname: String = "") -> PokemonInstance:
@@ -27,7 +29,71 @@ static func create(p_data: PokemonData, p_level: int = 5, p_nickname: String = "
 	inst.recalculate_stats(true)
 	if p_data != null:
 		inst.moves = p_data.learnable_moves.duplicate()
+	else:
+		inst.moves = ["tackle", "ember", "leer", "quick_attack"]
+	inst.ensure_move_instances()
 	return inst
+
+
+func ensure_move_instances() -> void:
+	if not move_instances.is_empty():
+		sync_moves_array()
+		return
+	
+	var source_list: Array = moves
+	if source_list.is_empty() and data != null:
+		source_list = data.learnable_moves.duplicate()
+	if source_list.is_empty():
+		source_list = ["tackle", "ember", "leer", "quick_attack"]
+	
+	move_instances.clear()
+	for entry in source_list:
+		if move_instances.size() >= 4:
+			break
+		if entry is MoveInstance:
+			move_instances.append(entry as MoveInstance)
+		elif entry is Dictionary:
+			move_instances.append(MoveInstance.from_dict(entry as Dictionary))
+		elif entry is String:
+			move_instances.append(MoveRegistry.create_move_instance(entry as String))
+	
+	# Ensure at least 4 slots if fewer than 4 were listed
+	var fallback_ids: Array[String] = ["tackle", "ember", "leer", "quick_attack"]
+	var idx: int = 0
+	while move_instances.size() < 4 and idx < fallback_ids.size():
+		move_instances.append(MoveRegistry.create_move_instance(fallback_ids[idx]))
+		idx += 1
+	
+	sync_moves_array()
+
+
+func sync_moves_array() -> void:
+	if move_instances.is_empty():
+		return
+	var updated_ids: Array = []
+	for m_inst in move_instances:
+		if m_inst != null:
+			updated_ids.append(m_inst.get_move_id())
+	moves = updated_ids
+
+
+func get_move_instance(slot_index: int) -> MoveInstance:
+	ensure_move_instances()
+	if slot_index < 0 or slot_index >= move_instances.size():
+		return null
+	return move_instances[slot_index]
+
+
+func get_move_count() -> int:
+	ensure_move_instances()
+	return move_instances.size()
+
+
+func restore_all_pp() -> void:
+	ensure_move_instances()
+	for m_inst in move_instances:
+		if m_inst != null:
+			m_inst.restore_pp(-1)
 
 
 func get_species_id() -> String:
@@ -87,6 +153,11 @@ func duplicate_instance() -> PokemonInstance:
 
 
 func to_dict() -> Dictionary:
+	ensure_move_instances()
+	var move_inst_dicts: Array[Dictionary] = []
+	for m_inst in move_instances:
+		if m_inst != null:
+			move_inst_dicts.append(m_inst.to_dict())
 	return {
 		"species_id": get_species_id(),
 		"display_name": data.display_name if data else nickname,
@@ -102,6 +173,7 @@ func to_dict() -> Dictionary:
 		"iv_def": iv_def,
 		"iv_spd": iv_spd,
 		"moves": moves.duplicate(true),
+		"move_instances": move_inst_dicts,
 	}
 
 
@@ -131,4 +203,15 @@ static func from_dict(d: Dictionary) -> PokemonInstance:
 		inst.moves = (d["moves"] as Array).duplicate(true)
 	elif p_data:
 		inst.moves = p_data.learnable_moves.duplicate()
+	
+	if d.has("move_instances") and d["move_instances"] is Array:
+		inst.move_instances.clear()
+		for item in d["move_instances"] as Array:
+			if item is Dictionary:
+				inst.move_instances.append(MoveInstance.from_dict(item as Dictionary))
+			elif item is MoveInstance:
+				inst.move_instances.append(item as MoveInstance)
+		inst.sync_moves_array()
+	else:
+		inst.ensure_move_instances()
 	return inst
