@@ -20,6 +20,7 @@ var ground: TileMapLayer
 var upper_ground: TileMapLayer
 var movement_tween: Tween
 var inventory: Inventory
+var party: Array[PokemonInstance] = []
 
 var is_moving: bool = false
 var is_jumping: bool = false
@@ -44,12 +45,21 @@ func _get_dialogue_manager() -> Node:
 
 
 func _ready() -> void:
+	var sm: Node = _get_scene_manager()
 	if inventory == null:
-		inventory = Inventory.new()
-		inventory.populate_starter_items()
+		if sm and sm.get("player_inventory") != null:
+			inventory = sm.get("player_inventory")
+		else:
+			inventory = Inventory.new()
+			inventory.populate_starter_items()
+	if party.is_empty():
+		if sm and sm.has_method("ensure_default_party"):
+			sm.ensure_default_party()
+			party = sm.get("party")
+		else:
+			party.append(PokemonRegistry.create_instance("cyndaquil", 5, "브케인"))
 	_resolve_map_layers()
 	snap_to_grid()
-	var sm: Node = _get_scene_manager()
 	if sm and sm.get("has_pending_spawn"):
 		teleport_to(sm.get("pending_spawn_position"), sm.get("pending_facing_direction"))
 		sm.set("has_pending_spawn", false)

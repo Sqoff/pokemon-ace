@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="PokemonData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/pokemon/PokemonData.gd" id="1_pdata"]
+
+[resource]
+script = ExtResource("1_pdata")
+species_id = "chikorita"
+display_name = "치코리타"
+dex_number = 152
+primary_type = "GRASS"
+secondary_type = ""
+base_hp = 45
+base_attack = 49
+base_defense = 65
+base_speed = 45
+catch_rate = 45
+pmd_sprite_dir = "res://assets/sprites/pokemon/pmd/chikorita"
+learnable_moves = Array[String](["tackle", "razor_leaf", "growl", "synthesis"])

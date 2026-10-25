@@ -15,6 +15,7 @@ enum GrassState {
 @export var encounter_table: EncounterTable
 @export var encounter_enabled: bool = true
 @export var trigger_chance: float = 0.25
+@export var auto_transition_to_battle: bool = true
 
 var effect: AnimatedSprite2D
 var last_encounter: Dictionary = {}
@@ -32,6 +33,10 @@ func _get_time_manager() -> Node:
 	return get_node_or_null("/root/TimeManager")
 
 
+func _get_scene_manager() -> Node:
+	return get_node_or_null("/root/SceneManager")
+
+
 func _on_entity_entered(body: Node2D) -> void:
 	frame = GrassState.STEPPED
 	play_effect()
@@ -40,10 +45,10 @@ func _on_entity_entered(body: Node2D) -> void:
 		if encounter_enabled:
 			var chance: float = encounter_table.encounter_rate if encounter_table else trigger_chance
 			if randf() < chance:
-				force_encounter()
+				force_encounter(-1, null, auto_transition_to_battle)
 
 
-func force_encounter(period: int = -1, rng: RandomNumberGenerator = null) -> Dictionary:
+func force_encounter(period: int = -1, rng: RandomNumberGenerator = null, transition_to_battle: bool = false) -> Dictionary:
 	if encounter_table == null:
 		encounter_table = EncounterTable.create_default_route29_table()
 	var target_period: int = period
@@ -56,7 +61,16 @@ func force_encounter(period: int = -1, rng: RandomNumberGenerator = null) -> Dic
 	last_encounter = encounter_table.roll_encounter(target_period, rng)
 	if not last_encounter.is_empty():
 		wild_encounter_triggered.emit(last_encounter, self)
+		if transition_to_battle:
+			var sm: Node = _get_scene_manager()
+			if sm and sm.has_method("enter_battle_arena"):
+				var wild_inst: PokemonInstance = PokemonRegistry.create_from_encounter_dict(last_encounter)
+				sm.enter_battle_arena(wild_inst, last_encounter)
 	return last_encounter
+
+
+func trigger_battle_encounter(period: int = -1, rng: RandomNumberGenerator = null) -> Dictionary:
+	return force_encounter(period, rng, true)
 
 
 func _on_entity_exited(_body: Node2D) -> void:

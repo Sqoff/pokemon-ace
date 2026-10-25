@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="PokemonData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/pokemon/PokemonData.gd" id="1_pdata"]
+
+[resource]
+script = ExtResource("1_pdata")
+species_id = "pidgey"
+display_name = "구구"
+dex_number = 16
+primary_type = "NORMAL"
+secondary_type = "FLYING"
+base_hp = 40
+base_attack = 45
+base_defense = 40
+base_speed = 56
+catch_rate = 255
+pmd_sprite_dir = "res://assets/sprites/pokemon/pmd/pidgey"
+learnable_moves = Array[String](["tackle", "gust", "sand_attack", "quick_attack"])

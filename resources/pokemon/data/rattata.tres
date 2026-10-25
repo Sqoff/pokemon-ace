@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="PokemonData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/pokemon/PokemonData.gd" id="1_pdata"]
+
+[resource]
+script = ExtResource("1_pdata")
+species_id = "rattata"
+display_name = "꼬렛"
+dex_number = 19
+primary_type = "NORMAL"
+secondary_type = ""
+base_hp = 30
+base_attack = 56
+base_defense = 35
+base_speed = 72
+catch_rate = 255
+pmd_sprite_dir = "res://assets/sprites/pokemon/pmd/rattata"
+learnable_moves = Array[String](["tackle", "tail_whip", "quick_attack", "hyper_fang"])

@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="PokemonData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/pokemon/PokemonData.gd" id="1_pdata"]
+
+[resource]
+script = ExtResource("1_pdata")
+species_id = "hoothoot"
+display_name = "부우부"
+dex_number = 163
+primary_type = "NORMAL"
+secondary_type = "FLYING"
+base_hp = 60
+base_attack = 30
+base_defense = 30
+base_speed = 50
+catch_rate = 255
+pmd_sprite_dir = "res://assets/sprites/pokemon/pmd/hoothoot"
+learnable_moves = Array[String](["tackle", "growl", "peck", "hypnosis"])

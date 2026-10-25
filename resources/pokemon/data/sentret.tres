@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="PokemonData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/pokemon/PokemonData.gd" id="1_pdata"]
+
+[resource]
+script = ExtResource("1_pdata")
+species_id = "sentret"
+display_name = "꼬리선"
+dex_number = 161
+primary_type = "NORMAL"
+secondary_type = ""
+base_hp = 35
+base_attack = 46
+base_defense = 34
+base_speed = 20
+catch_rate = 255
+pmd_sprite_dir = "res://assets/sprites/pokemon/pmd/sentret"
+learnable_moves = Array[String](["tackle", "defense_curl", "quick_attack", "fury_swipes"])
