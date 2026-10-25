@@ -32,7 +32,7 @@ func _resolve_item_data(item_or_id: Variant) -> ItemData:
 			_item_registry[item_data.id] = item_data
 		return item_data
 	elif item_or_id is String:
-		var item_id: String = item_or_id as String
+		var item_id: String = _resolve_item_id(item_or_id)
 		if _item_registry.has(item_id):
 			return _item_registry[item_id]
 		var default_item: ItemData = ItemData.get_default_item(item_id)
@@ -46,7 +46,10 @@ func _resolve_item_id(item_or_id: Variant) -> String:
 	if item_or_id is ItemData:
 		return (item_or_id as ItemData).id
 	elif item_or_id is String:
-		return item_or_id as String
+		var s: String = (item_or_id as String).strip_edges()
+		if s == "poke_ball":
+			return "pokeball"
+		return s
 	return ""
 
 

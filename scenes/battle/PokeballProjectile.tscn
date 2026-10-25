@@ -1,0 +1,37 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/PokeballProjectile.gd" id="1_pokeball"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_ball"]
+radius = 6.0
+
+[node name="PokeballProjectile" type="Area2D"]
+collision_layer = 4
+collision_mask = 3
+script = ExtResource("1_pokeball")
+
+[node name="Shadow" type="Polygon2D" parent="."]
+position = Vector2(0, 4)
+color = Color(0, 0, 0, 0.35)
+polygon = PackedVector2Array(-4, 0, -3, -2, 0, -2.5, 3, -2, 4, 0, 3, 2, 0, 2.5, -3, 2)
+
+[node name="BallVisual" type="Node2D" parent="."]
+
+[node name="BottomHalf" type="Polygon2D" parent="BallVisual"]
+color = Color(0.96, 0.96, 0.98, 1)
+polygon = PackedVector2Array(-5, 0, 5, 0, 4, 4, 0, 5, -4, 4)
+
+[node name="TopHalf" type="Polygon2D" parent="BallVisual"]
+color = Color(0.92, 0.22, 0.2, 1)
+polygon = PackedVector2Array(-5, 0, -4, -4, 0, -5, 4, -4, 5, 0)
+
+[node name="CenterBand" type="Polygon2D" parent="BallVisual"]
+color = Color(0.15, 0.15, 0.18, 1)
+polygon = PackedVector2Array(-5, -1, 5, -1, 5, 1, -5, 1)
+
+[node name="Button" type="Polygon2D" parent="BallVisual"]
+color = Color(1, 1, 1, 1)
+polygon = PackedVector2Array(-1.5, -1.5, 1.5, -1.5, 1.5, 1.5, -1.5, 1.5)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_ball")

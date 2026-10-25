@@ -57,6 +57,14 @@ func switch_pocket(pocket_idx: int) -> void:
 	pocket_switched.emit(current_pocket, ItemData.get_pocket_name(current_pocket))
 
 
+func get_item_list_text() -> String:
+	return item_list_label.text if item_list_label else ""
+
+
+func get_pocket_title_text() -> String:
+	return pocket_title_label.text if pocket_title_label else ""
+
+
 func _refresh_view() -> void:
 	if not inventory:
 		return

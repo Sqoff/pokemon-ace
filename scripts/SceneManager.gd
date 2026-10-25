@@ -10,6 +10,8 @@ signal battle_arena_exited(battle_result: Dictionary)
 
 const BATTLE_ARENA_SCENE_PATH: String = "res://scenes/battle/BattleArena.tscn"
 const DEFAULT_OVERWORLD_SCENE_PATH: String = "res://scenes/overworld/Overworld.tscn"
+const POKECENTER_SCENE_PATH: String = "res://scenes/overworld/PokeCenter.tscn"
+const POKECENTER_HEAL_SPAWN: Vector2 = Vector2(80, 64)
 
 var canvas_layer: CanvasLayer
 var fade_rect: ColorRect
@@ -22,10 +24,16 @@ var has_pending_spawn: bool = false
 
 ## Persistent Game State across Overworld <-> BattleArena
 var party: Array[PokemonInstance] = []
+var player_party: Array[PokemonInstance]:
+	get:
+		return party
+	set(value):
+		party = value
 var player_inventory: Inventory = null
 var active_wild_pokemon: PokemonInstance = null
 var last_encounter_data: Dictionary = {}
 var battle_snapshot: Dictionary = {}
+var last_battle_result: Dictionary = {}
 
 var return_scene_path: String = DEFAULT_OVERWORLD_SCENE_PATH
 var return_player_position: Vector2 = Vector2(64, 80)
@@ -73,6 +81,25 @@ func get_lead_pokemon() -> PokemonInstance:
 		if member != null and not member.is_fainted():
 			return member
 	return party[0]
+
+
+func heal_party_full() -> void:
+	ensure_default_party()
+	for member in party:
+		if member != null:
+			member.current_hp = member.max_hp
+			member.restore_all_pp()
+			member.sync_moves_array()
+
+
+func add_pokemon_to_party(pokemon: PokemonInstance) -> bool:
+	if pokemon == null:
+		return false
+	pokemon.ensure_move_instances()
+	pokemon.sync_moves_array()
+	if not party.has(pokemon):
+		party.append(pokemon)
+	return true
 
 
 func capture_overworld_snapshot(wild_pokemon: PokemonInstance = null, encounter_meta: Dictionary = {}) -> Dictionary:
@@ -177,9 +204,34 @@ func enter_battle_arena(wild_pokemon_or_dict: Variant = null, encounter_meta: Di
 func exit_battle_arena(battle_result: Dictionary = {}, duration: float = -1.0) -> void:
 	if is_transitioning:
 		return
-	if battle_result.get("caught", false) and active_wild_pokemon != null:
-		if not party.has(active_wild_pokemon):
-			party.append(active_wild_pokemon)
+	last_battle_result = battle_result.duplicate(true)
+	
+	# Sync player lead pokemon HP/PP if passed in result
+	if battle_result.get("player_pokemon") is PokemonInstance:
+		var updated_lead: PokemonInstance = battle_result.get("player_pokemon") as PokemonInstance
+		updated_lead.sync_moves_array()
+		if not party.is_empty() and not party.has(updated_lead):
+			party[0] = updated_lead
+	
+	var caught_flag: bool = bool(battle_result.get("caught", false)) or str(battle_result.get("outcome", "")) == "captured"
+	var captured_mon: PokemonInstance = null
+	if battle_result.get("captured_pokemon") is PokemonInstance:
+		captured_mon = battle_result.get("captured_pokemon") as PokemonInstance
+	elif active_wild_pokemon != null:
+		captured_mon = active_wild_pokemon
+	
+	if caught_flag and captured_mon != null:
+		add_pokemon_to_party(captured_mon)
+	
+	var is_defeat: bool = bool(battle_result.get("defeated", false)) or str(battle_result.get("outcome", "")) == "defeat"
+	if is_defeat:
+		heal_party_full()
+		return_scene_path = POKECENTER_SCENE_PATH
+		return_player_position = POKECENTER_HEAL_SPAWN
+		return_facing_direction = Vector2.DOWN
+		await warp_to_scene(POKECENTER_SCENE_PATH, POKECENTER_HEAL_SPAWN, Vector2.DOWN, duration)
+		battle_arena_exited.emit(battle_result)
+		return
 	
 	var target_path: String = return_scene_path if not return_scene_path.is_empty() else DEFAULT_OVERWORLD_SCENE_PATH
 	await warp_to_scene(target_path, return_player_position, return_facing_direction, duration)

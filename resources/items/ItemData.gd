@@ -91,7 +91,10 @@ static func get_all_default_items() -> Dictionary:
 
 
 static func get_default_item(item_id: String) -> ItemData:
+	var key: String = item_id.strip_edges().to_lower()
+	if key == "poke_ball":
+		key = "pokeball"
 	var catalog: Dictionary = get_all_default_items()
-	if catalog.has(item_id):
-		return catalog[item_id]
+	if catalog.has(key):
+		return catalog[key]
 	return null

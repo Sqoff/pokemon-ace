@@ -14,6 +14,7 @@ var tint_tween: Tween
 @onready var npc: NPC = $NPC
 @onready var start_menu_ui: StartMenuUI = $StartMenuUI
 @onready var bag_ui: BagUI = $BagUI
+@onready var party_ui: PartyUI = get_node_or_null("PartyUI") as PartyUI
 
 
 func _ready() -> void:
@@ -24,6 +25,8 @@ func _ready() -> void:
 	
 	if start_menu_ui and bag_ui:
 		start_menu_ui.bind_bag_ui(bag_ui)
+	if start_menu_ui and party_ui:
+		start_menu_ui.bind_party_ui(party_ui)
 	
 	var tm: Node = get_node_or_null("/root/TimeManager")
 	if tm:

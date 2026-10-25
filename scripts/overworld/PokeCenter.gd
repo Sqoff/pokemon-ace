@@ -4,6 +4,9 @@ const TILESET: TileSet = preload("res://resources/tilesets/overworld_tileset.tre
 
 @onready var ground: TileMapLayer = $Ground
 @onready var upper_ground: TileMapLayer = $UpperGround
+@onready var start_menu_ui: StartMenuUI = get_node_or_null("StartMenuUI") as StartMenuUI
+@onready var bag_ui: BagUI = get_node_or_null("BagUI") as BagUI
+@onready var party_ui: PartyUI = get_node_or_null("PartyUI") as PartyUI
 
 
 func _ready() -> void:
@@ -11,6 +14,10 @@ func _ready() -> void:
 	var player: Node2D = get_node_or_null("Player")
 	if player and player.has_method("_resolve_map_layers"):
 		player._resolve_map_layers()
+	if start_menu_ui and bag_ui:
+		start_menu_ui.bind_bag_ui(bag_ui)
+	if start_menu_ui and party_ui:
+		start_menu_ui.bind_party_ui(party_ui)
 
 
 func _build_interior_map() -> void:

@@ -15,6 +15,10 @@ signal hit_blocked_iframe(source_name: String)
 signal battle_message_requested(message: String)
 signal floating_text_spawned(text: String, color: Color)
 signal ai_state_changed(new_state: int, old_state: int)
+signal pokeball_aim_started(aim_direction: Vector2)
+signal pokeball_aim_ended()
+signal pokeball_thrown(ball: PokeballProjectile, direction: Vector2, ball_item_id: String)
+signal enrage_state_changed(enraged: bool, speed_mult: float, cooldown_mult: float)
 
 enum AIState {
 	IDLE_WANDER = 0,
@@ -23,6 +27,7 @@ enum AIState {
 }
 
 const PROJECTILE_SCENE: PackedScene = preload("res://scenes/battle/Projectile.tscn")
+const POKEBALL_PROJECTILE_SCENE: PackedScene = preload("res://scenes/battle/PokeballProjectile.tscn")
 
 @export var is_player_controlled: bool = false
 @export var team: int = 0
@@ -59,6 +64,16 @@ var last_floating_text: String = ""
 var floating_texts_history: Array[String] = []
 var last_battle_message: String = ""
 
+var is_aiming_pokeball: bool = false
+var aim_reticle_node: Node2D = null
+var selected_ball_id: String = "pokeball"
+
+var is_enraged: bool = false
+var enrage_timer: float = 0.0
+var enrage_speed_multiplier: float = 1.0
+var enrage_cooldown_multiplier: float = 1.0
+var is_in_ball_capture: bool = false
+
 @onready var shadow_poly: Polygon2D = $Shadow
 @onready var animated_sprite_2d: AnimatedSprite2D = $AnimatedSprite2D
 @onready var collision_shape_2d: CollisionShape2D = $CollisionShape2D
@@ -74,6 +89,7 @@ func _ready() -> void:
 	else:
 		pokemon_instance.ensure_move_instances()
 	_reset_slot_cooldowns()
+	_ensure_reticle_node()
 	_apply_pokemon_visuals()
 	_play_state_animation("idle", facing_dir_key, true)
 
@@ -89,9 +105,14 @@ func setup_from_instance(inst: PokemonInstance, p_is_player: bool = false, initi
 	attack_stage = 0
 	defense_stage = 0
 	invincible_timer = 0.0
+	is_aiming_pokeball = false
+	is_in_ball_capture = false
+	clear_enrage_state()
 	_reset_slot_cooldowns()
 	facing_dir_key = initial_dir_key if PMDSpriteLoader.DIRECTIONS.has(initial_dir_key) else "s"
 	facing_direction = PMDSpriteLoader.vector_from_direction(facing_dir_key)
+	_ensure_reticle_node()
+	_update_reticle_visual()
 	if is_node_ready():
 		_apply_pokemon_visuals()
 		_play_state_animation("idle", facing_dir_key, true)
@@ -160,6 +181,161 @@ func set_facing_direction(vec_or_key: Variant) -> void:
 			facing_direction = PMDSpriteLoader.vector_from_direction(k)
 	if action_lock_timer <= 0.0:
 		_play_state_animation(current_action, facing_dir_key)
+	_update_reticle_visual()
+
+
+func get_effective_move_speed() -> float:
+	return base_move_speed * (enrage_speed_multiplier if is_enraged else 1.0)
+
+
+func get_effective_cooldown_rate() -> float:
+	return enrage_cooldown_multiplier if is_enraged else 1.0
+
+
+func _ensure_reticle_node() -> void:
+	if aim_reticle_node != null and is_instance_valid(aim_reticle_node):
+		return
+	aim_reticle_node = get_node_or_null("AimReticle") as Node2D
+	if aim_reticle_node == null:
+		aim_reticle_node = Node2D.new()
+		aim_reticle_node.name = "AimReticle"
+		aim_reticle_node.visible = false
+		
+		var line_poly := Polygon2D.new()
+		line_poly.name = "AimLine"
+		line_poly.color = Color(1.0, 0.9, 0.25, 0.85)
+		line_poly.polygon = PackedVector2Array([
+			Vector2(10, -1.5),
+			Vector2(42, -1.5),
+			Vector2(42, -5.0),
+			Vector2(50, 0.0),
+			Vector2(42, 5.0),
+			Vector2(42, 1.5),
+			Vector2(10, 1.5),
+		])
+		aim_reticle_node.add_child(line_poly)
+		
+		var target_ring := Polygon2D.new()
+		target_ring.name = "TargetCrosshair"
+		target_ring.position = Vector2(54, 0)
+		target_ring.color = Color(1.0, 0.3, 0.25, 0.9)
+		target_ring.polygon = PackedVector2Array([
+			Vector2(-6, -2), Vector2(-2, -6), Vector2(2, -6), Vector2(6, -2),
+			Vector2(6, 2), Vector2(2, 6), Vector2(-2, 6), Vector2(-6, 2)
+		])
+		aim_reticle_node.add_child(target_ring)
+		add_child(aim_reticle_node)
+
+
+func _update_reticle_visual() -> void:
+	_ensure_reticle_node()
+	if aim_reticle_node == null:
+		return
+	aim_reticle_node.visible = is_aiming_pokeball
+	if facing_direction.length_squared() > 0.0001:
+		aim_reticle_node.rotation = facing_direction.angle()
+
+
+func start_aiming_pokeball(aim_dir: Vector2 = Vector2.ZERO) -> void:
+	if is_in_ball_capture:
+		return
+	if aim_dir.length_squared() > 0.0001:
+		facing_direction = aim_dir.normalized()
+		facing_dir_key = PMDSpriteLoader.direction_from_vector(facing_direction, facing_dir_key)
+	is_aiming_pokeball = true
+	velocity = Vector2.ZERO
+	_play_state_animation("idle", facing_dir_key)
+	_update_reticle_visual()
+	pokeball_aim_started.emit(facing_direction)
+
+
+func stop_aiming_pokeball() -> void:
+	if not is_aiming_pokeball:
+		return
+	is_aiming_pokeball = false
+	_update_reticle_visual()
+	pokeball_aim_ended.emit()
+
+
+func release_pokeball(ball_item_id: String = "") -> PokeballProjectile:
+	var item_to_use: String = ball_item_id if not ball_item_id.is_empty() else selected_ball_id
+	stop_aiming_pokeball()
+	return throw_pokeball_at(facing_direction, item_to_use)
+
+
+func throw_pokeball_at(
+	dir: Vector2 = Vector2.ZERO,
+	ball_item_id: String = "pokeball",
+	forced_outcome: int = -1,
+	rng: RandomNumberGenerator = null
+) -> PokeballProjectile:
+	var parent_arena: Node = get_parent()
+	if parent_arena != null and parent_arena.has_method("throw_pokeball_from_actor"):
+		return parent_arena.throw_pokeball_from_actor(self, dir, ball_item_id, forced_outcome, rng)
+	
+	var fire_dir: Vector2 = facing_direction
+	if dir.length_squared() > 0.0001:
+		fire_dir = dir.normalized()
+		facing_direction = fire_dir
+		facing_dir_key = PMDSpriteLoader.direction_from_vector(fire_dir, facing_dir_key)
+	
+	is_aiming_pokeball = false
+	_update_reticle_visual()
+	
+	var ball: PokeballProjectile = POKEBALL_PROJECTILE_SCENE.instantiate() as PokeballProjectile
+	ball.forced_catch_outcome = forced_outcome
+	ball.custom_rng = rng
+	ball.setup(self, team, fire_dir, ball_item_id)
+	ball.global_position = global_position + fire_dir * 10.0
+	
+	var container: Node = get_parent()
+	if container != null and container.has_node("Projectiles"):
+		container = container.get_node("Projectiles")
+	if container != null:
+		container.add_child(ball)
+	
+	pokeball_thrown.emit(ball, fire_dir, ball.ball_item_id)
+	return ball
+
+
+func set_captured_in_ball_visual(in_ball: bool) -> void:
+	is_in_ball_capture = in_ball
+	if in_ball:
+		velocity = Vector2.ZERO
+		simulated_input_vector = Vector2.ZERO
+	if animated_sprite_2d:
+		animated_sprite_2d.visible = not in_ball
+	if shadow_poly:
+		shadow_poly.visible = not in_ball
+	if collision_shape_2d:
+		collision_shape_2d.set_deferred("disabled", in_ball)
+
+
+func enter_enrage_state(duration: float = 6.0, speed_mult: float = 1.45, cooldown_mult: float = 1.75) -> void:
+	is_enraged = true
+	enrage_timer = maxf(0.5, duration)
+	enrage_speed_multiplier = maxf(1.1, speed_mult)
+	enrage_cooldown_multiplier = maxf(1.1, cooldown_mult)
+	if animated_sprite_2d:
+		animated_sprite_2d.modulate = Color(1.0, 0.55, 0.55, animated_sprite_2d.modulate.a)
+	var mon_name: String = pokemon_instance.get_display_name() if pokemon_instance != null else "포켓몬"
+	var msg: String = "야생 %s이(가) 분노하여 공격 속도가 빨라졌다!" % mon_name
+	last_battle_message = msg
+	_spawn_floating_text("분노!", Color(1.0, 0.3, 0.2))
+	enrage_state_changed.emit(true, enrage_speed_multiplier, enrage_cooldown_multiplier)
+	battle_message_requested.emit(msg)
+
+
+func clear_enrage_state() -> void:
+	var was_enraged: bool = is_enraged
+	is_enraged = false
+	enrage_timer = 0.0
+	enrage_speed_multiplier = 1.0
+	enrage_cooldown_multiplier = 1.0
+	if animated_sprite_2d:
+		animated_sprite_2d.modulate = Color(1.0, 1.0, 1.0, 1.0 if invincible_timer <= 0.0 else animated_sprite_2d.modulate.a)
+	if was_enraged:
+		enrage_state_changed.emit(false, 1.0, 1.0)
 
 
 func _get_input_vector() -> Vector2:
@@ -184,13 +360,23 @@ func _get_input_vector() -> Vector2:
 
 
 func _physics_process(delta: float) -> void:
+	if is_in_ball_capture:
+		velocity = Vector2.ZERO
+		return
+	
+	if is_enraged:
+		enrage_timer = maxf(0.0, enrage_timer - delta)
+		if enrage_timer <= 0.0:
+			clear_enrage_state()
+	
+	var cd_delta: float = delta * get_effective_cooldown_rate()
 	if cooldown_timer > 0.0:
-		cooldown_timer = maxf(0.0, cooldown_timer - delta)
+		cooldown_timer = maxf(0.0, cooldown_timer - cd_delta)
 	if action_lock_timer > 0.0:
 		action_lock_timer = maxf(0.0, action_lock_timer - delta)
 	for i in range(slot_cooldowns.size()):
 		if slot_cooldowns[i] > 0.0:
-			slot_cooldowns[i] = maxf(0.0, slot_cooldowns[i] - delta)
+			slot_cooldowns[i] = maxf(0.0, slot_cooldowns[i] - cd_delta)
 	
 	if invincible_timer > 0.0:
 		invincible_timer = maxf(0.0, invincible_timer - delta)
@@ -200,6 +386,24 @@ func _physics_process(delta: float) -> void:
 		if invincible_timer <= 0.0 and animated_sprite_2d:
 			animated_sprite_2d.modulate.a = 1.0
 	
+	if is_player_controlled:
+		if Input.is_action_just_pressed("throw_ball"):
+			start_aiming_pokeball()
+		elif Input.is_action_just_released("throw_ball") and is_aiming_pokeball:
+			release_pokeball()
+	
+	if is_aiming_pokeball:
+		var aim_vec: Vector2 = _get_input_vector()
+		if aim_vec.length_squared() > 0.0001:
+			facing_direction = aim_vec
+			facing_dir_key = PMDSpriteLoader.direction_from_vector(facing_direction, facing_dir_key)
+		velocity = Vector2.ZERO
+		move_and_slide()
+		if action_lock_timer <= 0.0:
+			_play_state_animation("idle", facing_dir_key)
+		_update_reticle_visual()
+		return
+	
 	if not is_player_controlled and ai_enabled:
 		_update_ai(delta)
 	
@@ -207,7 +411,7 @@ func _physics_process(delta: float) -> void:
 	if move_vec.length_squared() > 0.0001:
 		facing_direction = move_vec
 		facing_dir_key = PMDSpriteLoader.direction_from_vector(facing_direction, facing_dir_key)
-		velocity = facing_direction * base_move_speed
+		velocity = facing_direction * get_effective_move_speed()
 		move_and_slide()
 		if action_lock_timer <= 0.0:
 			_play_state_animation("walk", facing_dir_key)
@@ -216,6 +420,7 @@ func _physics_process(delta: float) -> void:
 		move_and_slide()
 		if action_lock_timer <= 0.0:
 			_play_state_animation("idle", facing_dir_key)
+	_update_reticle_visual()
 	
 	if is_player_controlled:
 		if Input.is_action_just_pressed("move_1"):

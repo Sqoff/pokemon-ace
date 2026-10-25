@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scripts/overworld/Overworld.gd" id="1_overworld"]
 [ext_resource type="TileSet" path="res://resources/tilesets/overworld_tileset.tres" id="2_tileset"]
@@ -9,6 +9,7 @@
 [ext_resource type="PackedScene" path="res://scenes/overworld/NPC.tscn" id="7_npc"]
 [ext_resource type="PackedScene" path="res://scenes/ui/StartMenuUI.tscn" id="8_start_menu"]
 [ext_resource type="PackedScene" path="res://scenes/ui/BagUI.tscn" id="9_bag_ui"]
+[ext_resource type="PackedScene" path="res://scenes/ui/PartyUI.tscn" id="10_party_ui"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_rock"]
 size = Vector2(14, 14)
@@ -77,3 +78,5 @@ map_root = NodePath("..")
 [node name="StartMenuUI" parent="." instance=ExtResource("8_start_menu")]
 
 [node name="BagUI" parent="." instance=ExtResource("9_bag_ui")]
+
+[node name="PartyUI" parent="." instance=ExtResource("10_party_ui")]
