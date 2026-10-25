@@ -60,6 +60,8 @@ func force_encounter(period: int = -1, rng: RandomNumberGenerator = null, transi
 			target_period = 1
 	last_encounter = encounter_table.roll_encounter(target_period, rng)
 	if not last_encounter.is_empty():
+		last_encounter["enable_ai"] = true
+		last_encounter["auto_exit"] = true
 		wild_encounter_triggered.emit(last_encounter, self)
 		if transition_to_battle:
 			var sm: Node = _get_scene_manager()

@@ -74,6 +74,11 @@ var enrage_speed_multiplier: float = 1.0
 var enrage_cooldown_multiplier: float = 1.0
 var is_in_ball_capture: bool = false
 
+var overhead_hud_node: Node2D = null
+var overhead_hp_fill: ColorRect = null
+var overhead_border_rect: ColorRect = null
+var overhead_status_label: Label = null
+
 @onready var shadow_poly: Polygon2D = $Shadow
 @onready var animated_sprite_2d: AnimatedSprite2D = $AnimatedSprite2D
 @onready var collision_shape_2d: CollisionShape2D = $CollisionShape2D
@@ -90,7 +95,9 @@ func _ready() -> void:
 		pokemon_instance.ensure_move_instances()
 	_reset_slot_cooldowns()
 	_ensure_reticle_node()
+	_ensure_overhead_hud()
 	_apply_pokemon_visuals()
+	_refresh_overhead_hud()
 	_play_state_animation("idle", facing_dir_key, true)
 
 
@@ -113,6 +120,8 @@ func setup_from_instance(inst: PokemonInstance, p_is_player: bool = false, initi
 	facing_direction = PMDSpriteLoader.vector_from_direction(facing_dir_key)
 	_ensure_reticle_node()
 	_update_reticle_visual()
+	_ensure_overhead_hud()
+	_refresh_overhead_hud()
 	if is_node_ready():
 		_apply_pokemon_visuals()
 		_play_state_animation("idle", facing_dir_key, true)
@@ -158,6 +167,10 @@ func _apply_pokemon_visuals() -> void:
 
 func set_move_input(vec: Vector2) -> void:
 	simulated_input_vector = vec
+	if is_player_controlled and vec.length_squared() > 0.0001:
+		for opp in _get_opposing_actors():
+			if opp.ai_enabled:
+				opp.set_ai_enabled(false)
 	if vec.length_squared() > 0.0001:
 		facing_direction = vec.normalized()
 		facing_dir_key = PMDSpriteLoader.direction_from_vector(facing_direction, facing_dir_key)
@@ -236,6 +249,84 @@ func _update_reticle_visual() -> void:
 		aim_reticle_node.rotation = facing_direction.angle()
 
 
+func _ensure_overhead_hud() -> void:
+	if overhead_hud_node != null and is_instance_valid(overhead_hud_node):
+		return
+	overhead_hud_node = get_node_or_null("OverheadHUD") as Node2D
+	if overhead_hud_node == null:
+		overhead_hud_node = Node2D.new()
+		overhead_hud_node.name = "OverheadHUD"
+		overhead_hud_node.position = Vector2(0, -18)
+		overhead_hud_node.z_index = 5
+		
+		overhead_border_rect = ColorRect.new()
+		overhead_border_rect.name = "BorderBG"
+		overhead_border_rect.position = Vector2(-13, -2)
+		overhead_border_rect.size = Vector2(26, 4)
+		overhead_border_rect.color = Color(0.08, 0.1, 0.14, 0.92)
+		overhead_hud_node.add_child(overhead_border_rect)
+		
+		var inner_track := ColorRect.new()
+		inner_track.name = "InnerTrack"
+		inner_track.position = Vector2(-12, -1)
+		inner_track.size = Vector2(24, 2)
+		inner_track.color = Color(0.22, 0.25, 0.30, 0.95)
+		overhead_hud_node.add_child(inner_track)
+		
+		overhead_hp_fill = ColorRect.new()
+		overhead_hp_fill.name = "HPFill"
+		overhead_hp_fill.position = Vector2(-12, -1)
+		overhead_hp_fill.size = Vector2(24, 2)
+		overhead_hp_fill.color = Color(0.22, 0.85, 0.35, 1.0)
+		overhead_hud_node.add_child(overhead_hp_fill)
+		
+		overhead_status_label = Label.new()
+		overhead_status_label.name = "StatusLabel"
+		overhead_status_label.position = Vector2(-24, -12)
+		overhead_status_label.size = Vector2(48, 10)
+		overhead_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		overhead_status_label.add_theme_font_size_override("font_size", 6)
+		overhead_status_label.add_theme_color_override("font_color", Color(1.0, 0.92, 0.35, 1.0))
+		overhead_status_label.add_theme_color_override("font_outline_color", Color(0.05, 0.05, 0.08, 0.95))
+		overhead_status_label.add_theme_constant_override("outline_size", 2)
+		overhead_status_label.text = ""
+		overhead_hud_node.add_child(overhead_status_label)
+		
+		add_child(overhead_hud_node)
+
+
+func _refresh_overhead_hud() -> void:
+	_ensure_overhead_hud()
+	if overhead_hud_node == null:
+		return
+	overhead_hud_node.visible = not is_in_ball_capture
+	if overhead_border_rect != null:
+		overhead_border_rect.color = Color(0.18, 0.55, 0.78, 0.95) if is_player_controlled else Color(0.75, 0.32, 0.24, 0.95)
+	if pokemon_instance != null and overhead_hp_fill != null:
+		var max_hp_f: float = float(maxi(1, pokemon_instance.max_hp))
+		var ratio: float = clampf(float(pokemon_instance.current_hp) / max_hp_f, 0.0, 1.0)
+		overhead_hp_fill.size.x = round(24.0 * ratio)
+		if ratio > 0.5:
+			overhead_hp_fill.color = Color(0.22, 0.85, 0.35, 1.0)
+		elif ratio > 0.2:
+			overhead_hp_fill.color = Color(0.96, 0.75, 0.18, 1.0)
+		else:
+			overhead_hp_fill.color = Color(0.92, 0.25, 0.22, 1.0)
+	if overhead_status_label != null:
+		var tags: PackedStringArray = PackedStringArray()
+		if is_enraged:
+			tags.append("분노!")
+		if defense_stage < 0:
+			tags.append("방어%d" % defense_stage)
+		if attack_stage < 0:
+			tags.append("공격%d" % attack_stage)
+		overhead_status_label.text = " ".join(tags)
+		if is_enraged:
+			overhead_status_label.add_theme_color_override("font_color", Color(1.0, 0.38, 0.32, 1.0))
+		else:
+			overhead_status_label.add_theme_color_override("font_color", Color(1.0, 0.90, 0.35, 1.0))
+
+
 func start_aiming_pokeball(aim_dir: Vector2 = Vector2.ZERO) -> void:
 	if is_in_ball_capture:
 		return
@@ -309,6 +400,7 @@ func set_captured_in_ball_visual(in_ball: bool) -> void:
 		shadow_poly.visible = not in_ball
 	if collision_shape_2d:
 		collision_shape_2d.set_deferred("disabled", in_ball)
+	_refresh_overhead_hud()
 
 
 func enter_enrage_state(duration: float = 6.0, speed_mult: float = 1.45, cooldown_mult: float = 1.75) -> void:
@@ -321,6 +413,7 @@ func enter_enrage_state(duration: float = 6.0, speed_mult: float = 1.45, cooldow
 	var mon_name: String = pokemon_instance.get_display_name() if pokemon_instance != null else "포켓몬"
 	var msg: String = "야생 %s이(가) 분노하여 공격 속도가 빨라졌다!" % mon_name
 	last_battle_message = msg
+	_refresh_overhead_hud()
 	_spawn_floating_text("분노!", Color(1.0, 0.3, 0.2))
 	enrage_state_changed.emit(true, enrage_speed_multiplier, enrage_cooldown_multiplier)
 	battle_message_requested.emit(msg)
@@ -334,6 +427,7 @@ func clear_enrage_state() -> void:
 	enrage_cooldown_multiplier = 1.0
 	if animated_sprite_2d:
 		animated_sprite_2d.modulate = Color(1.0, 1.0, 1.0, 1.0 if invincible_timer <= 0.0 else animated_sprite_2d.modulate.a)
+	_refresh_overhead_hud()
 	if was_enraged:
 		enrage_state_changed.emit(false, 1.0, 1.0)
 
@@ -668,6 +762,7 @@ func apply_stat_debuff(stat_name: String, stages: int = 1, _source: PokemonActor
 		label_kor = "방어력"
 	
 	var float_msg: String = "%s 감소!" % label_kor
+	_refresh_overhead_hud()
 	_spawn_floating_text(float_msg, Color(0.95, 0.8, 0.25))
 	var b_msg: String = "%s의 %s이(가) 떨어졌다!" % [
 		pokemon_instance.get_display_name() if pokemon_instance else "포켓몬",
@@ -720,6 +815,7 @@ func _apply_damage_and_iframe(final_damage: int, knockback_dir: Vector2 = Vector
 	if knockback_dir.length_squared() > 0.0001:
 		move_and_collide(knockback_dir.normalized() * 4.0)
 	
+	_refresh_overhead_hud()
 	_spawn_floating_text("-%d" % final_damage, Color(1.0, 0.3, 0.25))
 	damaged.emit(final_damage, remaining_hp, max_hp_val)
 	if pokemon_instance != null and pokemon_instance.is_fainted():

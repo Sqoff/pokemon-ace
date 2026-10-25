@@ -98,8 +98,16 @@ func setup_from_snapshot(snapshot: Dictionary = {}) -> void:
 		if not enemy_actor.fainted.is_connected(_on_actor_fainted):
 			enemy_actor.fainted.connect(_on_actor_fainted)
 	
+	var encounter_meta: Dictionary = snapshot.get("encounter_meta", {}) if snapshot.get("encounter_meta") is Dictionary else {}
+	if bool(encounter_meta.get("enable_ai", false)) and enemy_actor != null:
+		enemy_actor.set_ai_enabled(true, player_actor)
+	if bool(encounter_meta.get("auto_exit", false)) or bool(encounter_meta.get("enable_ai", false)):
+		auto_exit_on_battle_end = true
+	
 	if battle_hud:
 		battle_hud.bind_actors(player_actor, enemy_actor)
+		if wild_pokemon != null:
+			battle_hud.set_battle_message("야생 %s(이)가 나타났다! [방향키:이동 / 1~4:기술 / Space:포획]" % wild_pokemon.get_display_name())
 	
 	_update_hud()
 	last_stat_log = _format_battle_stat_log()
@@ -193,6 +201,7 @@ func throw_pokeball_from_actor(
 	var item_data: ItemData = ItemData.get_default_item(norm_ball_id)
 	var ball_name: String = item_data.display_name if item_data != null else "몬스터볼"
 	if battle_hud != null:
+		battle_hud.refresh_all()
 		battle_hud.set_battle_message("%s을(를) 던졌다! (잔여: %d)" % [ball_name, rem_count])
 	
 	actor.pokeball_thrown.emit(ball, fire_dir, norm_ball_id)

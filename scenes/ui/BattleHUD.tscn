@@ -1,6 +1,113 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/BattleHUD.gd" id="1_hud"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_enemy_box"]
+bg_color = Color(0.97, 0.95, 0.88, 0.98)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 3
+border_color = Color(0.18, 0.22, 0.28, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_center_box"]
+bg_color = Color(0.14, 0.19, 0.27, 0.96)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 2
+border_color = Color(0.86, 0.8, 0.62, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_player_box"]
+bg_color = Color(0.97, 0.95, 0.88, 0.98)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 3
+border_color = Color(0.16, 0.34, 0.48, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hp_housing"]
+bg_color = Color(0.14, 0.17, 0.22, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.32, 0.36, 0.42, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hp_bg"]
+bg_color = Color(0.2, 0.24, 0.28, 1)
+corner_radius_top_left = 1
+corner_radius_top_right = 1
+corner_radius_bottom_right = 1
+corner_radius_bottom_left = 1
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hp_fill_enemy"]
+bg_color = Color(0.22, 0.85, 0.35, 1)
+corner_radius_top_left = 1
+corner_radius_top_right = 1
+corner_radius_bottom_right = 1
+corner_radius_bottom_left = 1
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hp_fill_player"]
+bg_color = Color(0.22, 0.85, 0.35, 1)
+corner_radius_top_left = 1
+corner_radius_top_right = 1
+corner_radius_bottom_right = 1
+corner_radius_bottom_left = 1
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fight_moves_box"]
+bg_color = Color(0.97, 0.97, 0.94, 0.98)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 3
+border_color = Color(0.18, 0.24, 0.32, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_right_info_box"]
+bg_color = Color(0.12, 0.16, 0.24, 0.98)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 3
+border_color = Color(0.85, 0.8, 0.65, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cd_bg"]
+bg_color = Color(0.2, 0.24, 0.3, 0.85)
+corner_radius_top_left = 1
+corner_radius_top_right = 1
+corner_radius_bottom_right = 1
+corner_radius_bottom_left = 1
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cd_fill"]
+bg_color = Color(0.24, 0.78, 0.96, 1)
+corner_radius_top_left = 1
+corner_radius_top_right = 1
+corner_radius_bottom_right = 1
+corner_radius_bottom_left = 1
 
 [node name="BattleHUD" type="Control"]
 layout_mode = 3
@@ -12,127 +119,353 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("1_hud")
 
+[node name="EnemyStatusPanel" type="Panel" parent="."]
+layout_mode = 0
+offset_left = 4.0
+offset_top = 2.0
+offset_right = 134.0
+offset_bottom = 35.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_enemy_box")
+
+[node name="EnemyHPTrack" type="Panel" parent="EnemyStatusPanel"]
+layout_mode = 0
+offset_left = 5.0
+offset_top = 18.0
+offset_right = 125.0
+offset_bottom = 29.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_hp_housing")
+
+[node name="EnemyHPTag" type="Label" parent="EnemyStatusPanel/EnemyHPTrack"]
+layout_mode = 0
+offset_left = 2.0
+offset_top = 0.0
+offset_right = 18.0
+offset_bottom = 11.0
+theme_override_colors/font_color = Color(0.98, 0.76, 0.18, 1)
+theme_override_colors/font_outline_color = Color(0.05, 0.05, 0.08, 1)
+theme_override_constants/outline_size = 1
+theme_override_font_sizes/font_size = 7
+text = "HP"
+
+[node name="CenterInfoPanel" type="Panel" parent="."]
+layout_mode = 0
+offset_left = 136.0
+offset_top = 2.0
+offset_right = 184.0
+offset_bottom = 35.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_center_box")
+
+[node name="TopBallCountLabel" type="Label" parent="CenterInfoPanel"]
+layout_mode = 0
+offset_left = 2.0
+offset_top = 3.0
+offset_right = 46.0
+offset_bottom = 17.0
+theme_override_colors/font_color = Color(1, 0.94, 0.68, 1)
+theme_override_colors/font_outline_color = Color(0.05, 0.07, 0.12, 1)
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 7
+horizontal_alignment = 1
+text = "● 볼 x5"
+
+[node name="TopCatchHintLabel" type="Label" parent="CenterInfoPanel"]
+layout_mode = 0
+offset_left = 2.0
+offset_top = 17.0
+offset_right = 46.0
+offset_bottom = 31.0
+theme_override_colors/font_color = Color(0.68, 0.9, 1, 1)
+theme_override_colors/font_outline_color = Color(0.05, 0.07, 0.12, 1)
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 6
+horizontal_alignment = 1
+text = "[Space]포획"
+
+[node name="PlayerStatusPanel" type="Panel" parent="."]
+layout_mode = 0
+offset_left = 186.0
+offset_top = 2.0
+offset_right = 316.0
+offset_bottom = 35.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_player_box")
+
+[node name="PlayerHPTrack" type="Panel" parent="PlayerStatusPanel"]
+layout_mode = 0
+offset_left = 5.0
+offset_top = 18.0
+offset_right = 125.0
+offset_bottom = 29.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_hp_housing")
+
+[node name="PlayerHPTag" type="Label" parent="PlayerStatusPanel/PlayerHPTrack"]
+layout_mode = 0
+offset_left = 2.0
+offset_top = 0.0
+offset_right = 18.0
+offset_bottom = 11.0
+theme_override_colors/font_color = Color(0.98, 0.76, 0.18, 1)
+theme_override_colors/font_outline_color = Color(0.05, 0.05, 0.08, 1)
+theme_override_constants/outline_size = 1
+theme_override_font_sizes/font_size = 7
+text = "HP"
+
+[node name="FightMovesBox" type="Panel" parent="."]
+layout_mode = 0
+offset_left = 4.0
+offset_top = 176.0
+offset_right = 196.0
+offset_bottom = 238.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_fight_moves_box")
+
+[node name="SlotCardsLayer" type="Control" parent="FightMovesBox"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="SlotCard0" type="Panel" parent="FightMovesBox/SlotCardsLayer"]
+layout_mode = 0
+offset_left = 4.0
+offset_top = 3.0
+offset_right = 94.0
+offset_bottom = 29.0
+mouse_filter = 2
+
+[node name="SlotCard1" type="Panel" parent="FightMovesBox/SlotCardsLayer"]
+layout_mode = 0
+offset_left = 98.0
+offset_top = 3.0
+offset_right = 188.0
+offset_bottom = 29.0
+mouse_filter = 2
+
+[node name="SlotCard2" type="Panel" parent="FightMovesBox/SlotCardsLayer"]
+layout_mode = 0
+offset_left = 4.0
+offset_top = 32.0
+offset_right = 94.0
+offset_bottom = 58.0
+mouse_filter = 2
+
+[node name="SlotCard3" type="Panel" parent="FightMovesBox/SlotCardsLayer"]
+layout_mode = 0
+offset_left = 98.0
+offset_top = 32.0
+offset_right = 188.0
+offset_bottom = 58.0
+mouse_filter = 2
+
+[node name="RightInfoAndMessageBox" type="Panel" parent="."]
+layout_mode = 0
+offset_left = 198.0
+offset_top = 176.0
+offset_right = 316.0
+offset_bottom = 238.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_right_info_box")
+
+[node name="RightHeaderLabel" type="Label" parent="RightInfoAndMessageBox"]
+layout_mode = 0
+offset_left = 5.0
+offset_top = 3.0
+offset_right = 113.0
+offset_bottom = 16.0
+theme_override_colors/font_color = Color(0.75, 0.92, 1, 1)
+theme_override_colors/font_outline_color = Color(0.04, 0.06, 0.1, 1)
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 7
+text = "● 몬스터볼 x5 [Space]"
+
+[node name="HeaderDivider" type="ColorRect" parent="RightInfoAndMessageBox"]
+layout_mode = 0
+offset_left = 4.0
+offset_top = 16.0
+offset_right = 114.0
+offset_bottom = 17.0
+color = Color(0.85, 0.8, 0.65, 0.45)
+
 [node name="EnemyStatLabel" type="Label" parent="."]
 layout_mode = 0
-offset_left = 16.0
-offset_top = 1.0
-offset_right = 164.0
-offset_bottom = 14.0
-theme_override_font_sizes/font_size = 9
+offset_left = 9.0
+offset_top = 4.0
+offset_right = 131.0
+offset_bottom = 18.0
+theme_override_colors/font_color = Color(0.1, 0.14, 0.2, 1)
+theme_override_colors/font_outline_color = Color(1, 0.99, 0.95, 1)
+theme_override_constants/outline_size = 1
+theme_override_font_sizes/font_size = 7
 text = "야생 구구 Lv.3  HP 16/16"
 
 [node name="EnemyHPBar" type="ProgressBar" parent="."]
 layout_mode = 0
-offset_left = 16.0
-offset_top = 12.0
-offset_right = 128.0
-offset_bottom = 16.0
+offset_left = 28.0
+offset_top = 22.0
+offset_right = 126.0
+offset_bottom = 29.0
+theme_override_styles/background = SubResource("StyleBoxFlat_hp_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_hp_fill_enemy")
 max_value = 16.0
 value = 16.0
 show_percentage = false
 
 [node name="PlayerStatLabel" type="Label" parent="."]
 layout_mode = 0
-offset_left = 156.0
-offset_top = 1.0
-offset_right = 304.0
-offset_bottom = 14.0
-theme_override_font_sizes/font_size = 9
+offset_left = 191.0
+offset_top = 4.0
+offset_right = 312.0
+offset_bottom = 18.0
+theme_override_colors/font_color = Color(0.1, 0.14, 0.2, 1)
+theme_override_colors/font_outline_color = Color(1, 0.99, 0.95, 1)
+theme_override_constants/outline_size = 1
+theme_override_font_sizes/font_size = 7
 horizontal_alignment = 2
 text = "브케인 Lv.5  HP 20/20"
 
 [node name="PlayerHPBar" type="ProgressBar" parent="."]
 layout_mode = 0
-offset_left = 192.0
-offset_top = 12.0
-offset_right = 304.0
-offset_bottom = 16.0
+offset_left = 210.0
+offset_top = 22.0
+offset_right = 308.0
+offset_bottom = 29.0
+theme_override_styles/background = SubResource("StyleBoxFlat_hp_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_hp_fill_player")
 max_value = 20.0
 value = 20.0
 show_percentage = false
 
 [node name="MessageLabel" type="Label" parent="."]
 layout_mode = 0
-offset_left = 16.0
-offset_top = 206.0
-offset_right = 304.0
-offset_bottom = 220.0
-theme_override_colors/font_color = Color(1, 0.96, 0.75, 1)
-theme_override_font_sizes/font_size = 9
-text = ""
-
-[node name="MoveSlotsContainer" type="HBoxContainer" parent="."]
-layout_mode = 0
-offset_left = 8.0
-offset_top = 220.0
+offset_left = 203.0
+offset_top = 194.0
 offset_right = 312.0
-offset_bottom = 239.0
-theme_override_constants/separation = 4
+offset_bottom = 235.0
+theme_override_colors/font_color = Color(1, 0.96, 0.78, 1)
+theme_override_colors/font_outline_color = Color(0.04, 0.06, 0.1, 1)
+theme_override_constants/line_spacing = 1
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 7
+text = ""
+autowrap_mode = 3
+clip_text = true
+
+[node name="MoveSlotsContainer" type="GridContainer" parent="."]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 180.0
+offset_right = 190.0
+offset_bottom = 234.0
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 4
+columns = 2
 
 [node name="MoveSlot0" type="VBoxContainer" parent="MoveSlotsContainer"]
+custom_minimum_size = Vector2(86, 25)
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_vertical = 3
 theme_override_constants/separation = 1
 
 [node name="SlotLabel" type="Label" parent="MoveSlotsContainer/MoveSlot0"]
 layout_mode = 2
+theme_override_colors/font_color = Color(0.12, 0.16, 0.22, 1)
+theme_override_colors/font_outline_color = Color(1, 1, 1, 0.9)
+theme_override_constants/line_spacing = 0
+theme_override_constants/outline_size = 1
 theme_override_font_sizes/font_size = 7
-text = "[1/Z] 몸통박치기 PP 35/35"
+text = "▶[1/Z] 몸통박치기
+PP 35/35"
 
 [node name="CooldownBar" type="ProgressBar" parent="MoveSlotsContainer/MoveSlot0"]
 custom_minimum_size = Vector2(0, 3)
 layout_mode = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_cd_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_cd_fill")
 max_value = 1.0
 value = 0.0
 show_percentage = false
 
 [node name="MoveSlot1" type="VBoxContainer" parent="MoveSlotsContainer"]
+custom_minimum_size = Vector2(86, 25)
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_vertical = 3
 theme_override_constants/separation = 1
 
 [node name="SlotLabel" type="Label" parent="MoveSlotsContainer/MoveSlot1"]
 layout_mode = 2
+theme_override_colors/font_color = Color(0.12, 0.16, 0.22, 1)
+theme_override_colors/font_outline_color = Color(1, 1, 1, 0.9)
+theme_override_constants/line_spacing = 0
+theme_override_constants/outline_size = 1
 theme_override_font_sizes/font_size = 7
-text = "[2/X] 불꽃세례 PP 25/25"
+text = "▶[2/X] 불꽃세례
+PP 25/25"
 
 [node name="CooldownBar" type="ProgressBar" parent="MoveSlotsContainer/MoveSlot1"]
 custom_minimum_size = Vector2(0, 3)
 layout_mode = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_cd_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_cd_fill")
 max_value = 1.0
 value = 0.0
 show_percentage = false
 
 [node name="MoveSlot2" type="VBoxContainer" parent="MoveSlotsContainer"]
+custom_minimum_size = Vector2(86, 25)
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_vertical = 3
 theme_override_constants/separation = 1
 
 [node name="SlotLabel" type="Label" parent="MoveSlotsContainer/MoveSlot2"]
 layout_mode = 2
+theme_override_colors/font_color = Color(0.12, 0.16, 0.22, 1)
+theme_override_colors/font_outline_color = Color(1, 1, 1, 0.9)
+theme_override_constants/line_spacing = 0
+theme_override_constants/outline_size = 1
 theme_override_font_sizes/font_size = 7
-text = "[3/C] 째려보기 PP 30/30"
+text = "▶[3/C] 째려보기
+PP 30/30"
 
 [node name="CooldownBar" type="ProgressBar" parent="MoveSlotsContainer/MoveSlot2"]
 custom_minimum_size = Vector2(0, 3)
 layout_mode = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_cd_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_cd_fill")
 max_value = 1.0
 value = 0.0
 show_percentage = false
 
 [node name="MoveSlot3" type="VBoxContainer" parent="MoveSlotsContainer"]
+custom_minimum_size = Vector2(86, 25)
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_vertical = 3
 theme_override_constants/separation = 1
 
 [node name="SlotLabel" type="Label" parent="MoveSlotsContainer/MoveSlot3"]
 layout_mode = 2
+theme_override_colors/font_color = Color(0.12, 0.16, 0.22, 1)
+theme_override_colors/font_outline_color = Color(1, 1, 1, 0.9)
+theme_override_constants/line_spacing = 0
+theme_override_constants/outline_size = 1
 theme_override_font_sizes/font_size = 7
-text = "[4/V] 전광석화 PP 30/30"
+text = "▶[4/V] 전광석화
+PP 30/30"
 
 [node name="CooldownBar" type="ProgressBar" parent="MoveSlotsContainer/MoveSlot3"]
 custom_minimum_size = Vector2(0, 3)
 layout_mode = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_cd_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_cd_fill")
 max_value = 1.0
 value = 0.0
 show_percentage = false
