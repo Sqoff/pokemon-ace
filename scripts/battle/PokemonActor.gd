@@ -557,9 +557,10 @@ func _physics_process(delta: float) -> void:
 			register_direction_tap("up")
 		
 		if Input.is_action_just_pressed("throw_ball"):
+			selected_ball_id = "pokeball"
 			start_aiming_pokeball()
 		elif Input.is_action_just_released("throw_ball") and is_aiming_pokeball:
-			release_pokeball()
+			release_pokeball("pokeball")
 	
 	if is_aiming_pokeball:
 		set_sprinting(false)
@@ -905,6 +906,21 @@ func _apply_damage_and_iframe(final_damage: int, knockback_dir: Vector2 = Vector
 	if pokemon_instance != null and pokemon_instance.is_fainted():
 		fainted.emit(self)
 	return remaining_hp
+
+
+func play_heal_visual(healed_amount: int) -> void:
+	_refresh_overhead_hud()
+	_spawn_floating_text("+%d HP" % maxi(0, healed_amount), Color(0.28, 0.96, 0.42))
+	_spawn_effect_polygon(
+		global_position,
+		PackedVector2Array([
+			Vector2(0, -14), Vector2(10, -8), Vector2(14, 0), Vector2(10, 8),
+			Vector2(0, 14), Vector2(-10, 8), Vector2(-14, 0), Vector2(-10, -8)
+		]),
+		Color(0.32, 0.96, 0.48, 0.85),
+		0.0,
+		0.24
+	)
 
 
 func _spawn_floating_text(text: String, color: Color = Color(1, 1, 1, 1)) -> Node2D:

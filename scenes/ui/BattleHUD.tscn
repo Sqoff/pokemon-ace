@@ -182,7 +182,7 @@ theme_override_colors/font_outline_color = Color(0.05, 0.07, 0.12, 1)
 theme_override_constants/outline_size = 2
 theme_override_font_sizes/font_size = 6
 horizontal_alignment = 1
-text = "[Space]포획"
+text = "[1~4]도구"
 
 [node name="PlayerStatusPanel" type="Panel" parent="."]
 layout_mode = 0
@@ -203,7 +203,7 @@ theme_override_colors/font_color = Color(0.82, 0.22, 0.18, 1)
 theme_override_colors/font_outline_color = Color(1, 0.99, 0.95, 1)
 theme_override_constants/outline_size = 1
 theme_override_font_sizes/font_size = 6
-text = "● [Q/E][Tab]"
+text = "● [Q/W][Tab]"
 
 [node name="PlayerHPTrack" type="Panel" parent="PlayerStatusPanel"]
 layout_mode = 0
@@ -286,15 +286,16 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_right_info_box")
 
 [node name="RightHeaderLabel" type="Label" parent="RightInfoAndMessageBox"]
 layout_mode = 0
-offset_left = 5.0
+offset_left = 4.0
 offset_top = 3.0
-offset_right = 113.0
+offset_right = 114.0
 offset_bottom = 16.0
 theme_override_colors/font_color = Color(0.75, 0.92, 1, 1)
 theme_override_colors/font_outline_color = Color(0.04, 0.06, 0.1, 1)
 theme_override_constants/outline_size = 2
-theme_override_font_sizes/font_size = 7
-text = "● 몬스터볼 x5 [Space]"
+theme_override_font_sizes/font_size = 6
+text = "[1]상처약:3 [2]몬스터볼:5 [3]수퍼볼:2 [4]-"
+clip_text = true
 
 [node name="HeaderDivider" type="ColorRect" parent="RightInfoAndMessageBox"]
 layout_mode = 0
@@ -392,7 +393,7 @@ theme_override_colors/font_outline_color = Color(1, 1, 1, 0.9)
 theme_override_constants/line_spacing = 0
 theme_override_constants/outline_size = 1
 theme_override_font_sizes/font_size = 7
-text = "▶[1/Z] 몸통박치기
+text = "▶[A] 몸통박치기
 PP 35/35"
 
 [node name="CooldownBar" type="ProgressBar" parent="MoveSlotsContainer/MoveSlot0"]
@@ -418,7 +419,7 @@ theme_override_colors/font_outline_color = Color(1, 1, 1, 0.9)
 theme_override_constants/line_spacing = 0
 theme_override_constants/outline_size = 1
 theme_override_font_sizes/font_size = 7
-text = "▶[2/X] 불꽃세례
+text = "▶[S] 불꽃세례
 PP 25/25"
 
 [node name="CooldownBar" type="ProgressBar" parent="MoveSlotsContainer/MoveSlot1"]
@@ -444,7 +445,7 @@ theme_override_colors/font_outline_color = Color(1, 1, 1, 0.9)
 theme_override_constants/line_spacing = 0
 theme_override_constants/outline_size = 1
 theme_override_font_sizes/font_size = 7
-text = "▶[3/C] 째려보기
+text = "▶[Z] 째려보기
 PP 30/30"
 
 [node name="CooldownBar" type="ProgressBar" parent="MoveSlotsContainer/MoveSlot2"]
@@ -470,7 +471,7 @@ theme_override_colors/font_outline_color = Color(1, 1, 1, 0.9)
 theme_override_constants/line_spacing = 0
 theme_override_constants/outline_size = 1
 theme_override_font_sizes/font_size = 7
-text = "▶[4/V] 전광석화
+text = "▶[X] 전광석화
 PP 30/30"
 
 [node name="CooldownBar" type="ProgressBar" parent="MoveSlotsContainer/MoveSlot3"]

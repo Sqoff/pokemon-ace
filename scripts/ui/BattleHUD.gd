@@ -1,7 +1,7 @@
 class_name BattleHUD
 extends Control
 
-const SLOT_KEY_HINTS: Array[String] = ["1/Z", "2/X", "3/C", "4/V"]
+const SLOT_KEY_HINTS: Array[String] = ["A", "S", "Z", "X"]
 
 const HP_COLOR_HIGH: Color = Color(0.22, 0.85, 0.35, 1.0)
 const HP_COLOR_MID: Color = Color(0.96, 0.75, 0.18, 1.0)
@@ -180,13 +180,13 @@ func _refresh_party_switch_display() -> void:
 			party_status_label.text = "%s 쿨%.1fs" % [dots, switch_cooldown]
 			party_status_label.add_theme_color_override("font_color", Color(0.92, 0.45, 0.15, 1.0))
 		else:
-			party_status_label.text = "%s [Q/E][Tab]" % dots
+			party_status_label.text = "%s [Q/W][Tab]" % dots
 			party_status_label.add_theme_color_override("font_color", Color(0.82, 0.22, 0.18, 1.0))
 	if top_catch_hint_label != null:
 		if switch_cooldown > 0.01:
 			top_catch_hint_label.text = "교체 %.1fs" % switch_cooldown
 		else:
-			top_catch_hint_label.text = "[Space]포획"
+			top_catch_hint_label.text = "[1~4]도구"
 
 
 static func get_hp_bar_color(ratio: float) -> Color:
@@ -211,13 +211,35 @@ static func get_type_kor_name(type_str: String) -> String:
 	return "노말"
 
 
-func _get_pokeball_count() -> int:
+func _get_inventory() -> Inventory:
 	var sm: Node = get_node_or_null("/root/SceneManager")
 	if sm != null and sm.get("player_inventory") != null:
-		var inv: Inventory = sm.get("player_inventory") as Inventory
-		if inv != null:
-			return inv.get_item_count("pokeball")
+		return sm.get("player_inventory") as Inventory
+	return null
+
+
+func _get_pokeball_count() -> int:
+	var inv: Inventory = _get_inventory()
+	if inv != null:
+		return inv.get_item_count("pokeball")
 	return 5
+
+
+func get_quick_slots_summary_text() -> String:
+	var inv: Inventory = _get_inventory()
+	if inv == null:
+		return "[1]상처약:3 [2]몬스터볼:5 [3]수퍼볼:2 [4]-"
+	var parts: Array[String] = []
+	for i in range(Inventory.QUICK_SLOT_COUNT):
+		var item_id: String = inv.get_quick_slot_item_id(i)
+		if item_id.is_empty():
+			parts.append("[%d]-" % (i + 1))
+		else:
+			var item_data: ItemData = inv.get_quick_slot_item_data(i)
+			var d_name: String = item_data.display_name if item_data != null else item_id
+			var cnt: int = inv.get_item_count(item_id)
+			parts.append("[%d]%s:%d" % [i + 1, d_name, cnt])
+	return " ".join(parts)
 
 
 func _refresh_ball_and_status_info() -> void:
@@ -236,8 +258,7 @@ func _refresh_ball_and_status_info() -> void:
 				status_suffix += " [분노!]"
 			if enemy_actor.defense_stage < 0:
 				status_suffix += " [방어%d]" % enemy_actor.defense_stage
-		var switch_tag: String = " [교체%.1fs]" % switch_cooldown if switch_cooldown > 0.01 else " [Q/E]교체 [Tab]파티"
-		right_header_label.text = "● 볼 x%d [Space]%s%s" % [ball_cnt, switch_tag, status_suffix]
+		right_header_label.text = "%s%s" % [get_quick_slots_summary_text(), status_suffix]
 
 
 func _refresh_hp_displays() -> void:

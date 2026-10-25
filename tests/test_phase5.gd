@@ -288,23 +288,105 @@ func _run_all_tests() -> void:
 		bag_ui.is_open and bag_ui.get_item_list_text().contains("몬스터볼  x%d" % pokeballs_after),
 		"BagUI Pokeballs pocket displays updated count '몬스터볼  x%d'" % pokeballs_after
 	)
+	
+	# Verify 1~4 Quick Slot registration in BagUI
+	bag_ui.select_item_by_index(1) # Select 수퍼볼 (great_ball)
+	var assign_ball_ok: bool = bag_ui.assign_selected_to_quick_slot(2) # Slot index 2 ([3번])
+	_assert_true(
+		assign_ball_ok and scene_mgr.player_inventory.get_quick_slot_item_id(2) == "great_ball" and bag_ui.get_item_list_text().contains("[3번]"),
+		"BagUI assigned 'great_ball' to quick slot 3 ([3번])"
+	)
+	bag_ui.switch_pocket(ItemData.Pocket.ITEMS)
+	bag_ui.select_item_by_index(0) # Select 상처약 (potion)
+	var assign_potion_ok: bool = bag_ui.assign_selected_to_quick_slot(0) # Slot index 0 ([1번])
+	_assert_true(
+		assign_potion_ok and scene_mgr.player_inventory.get_quick_slot_item_id(0) == "potion",
+		"BagUI assigned 'potion' to quick slot 1 ([1번])"
+	)
+	bag_ui.switch_pocket(ItemData.Pocket.KEY_ITEMS)
+	bag_ui.select_item_by_index(0) # Select 자전거 (bicycle) -> should be rejected for quick slot
+	var assign_key_item_ok: bool = bag_ui.assign_selected_to_quick_slot(3)
+	_assert_true(
+		not assign_key_item_ok and scene_mgr.player_inventory.get_quick_slot_item_id(3) == "",
+		"BagUI rejects assigning Key Item ('bicycle') to battle quick slot 4"
+	)
 	bag_ui.close_bag()
 	start_menu.close_menu()
 	
 	# ---------------------------------------------------------
-	# [검증 4] 실시간 포켓몬 교체(Q/E 퀵 태그 & Tab 파티 선택) 및 기절 시 연속 출전 -> 전원 기절 시 패배/포켓몬센터 회복 검증
+	# [검증 4] 실시간 포켓몬 교체(Q/W 퀵 태그 & Tab 파티 선택), 1~4번 아이템 퀵슬롯(상처약 회복/볼 투척) 및 기절 시 연속 출전 -> 전원 기절 시 패배/포켓몬센터 회복 검증
 	# ---------------------------------------------------------
-	print("\n--- [검증 4] 실시간 포켓몬 교체(Q/E & Tab, 0.3s 무적/1s 스킬쿨/4s 교체쿨) 및 기절 연속 출전 -> 전원 기절 패배 검증 ---")
+	print("\n--- [검증 4] A/S/Z/X 기술 키 + Q/W/Tab 태그 + 1~4 아이템 퀵슬롯(회복약/몬스터볼) 및 기절 연속 출전 -> 전원 기절 패배 검증 ---")
 	await scene_mgr.enter_battle_arena(PokemonRegistry.create_instance("rattata", 5, "꼬렛"), {}, 0.02)
 	await _wait_frames(3)
 	
 	var defeat_arena: BattleArena = current_scene as BattleArena
 	_assert_true(defeat_arena != null and defeat_arena.name == "BattleArena", "Entered BattleArena for switch & defeat test")
+	defeat_arena.enemy_actor.set_ai_enabled(false)
 	_assert_true(defeat_arena.battle_party.size() == 2, "BattleArena synced 2 party members ('%s', '%s')" % [
 		defeat_arena.battle_party[0].get_display_name(),
 		defeat_arena.battle_party[1].get_display_name()
 	])
 	_assert_true(defeat_arena.battle_hud.get_party_dots_text() == "●●", "BattleHUD shows '●●' for 2 alive party pokemon")
+	_assert_true(
+		defeat_arena.battle_hud.get_slot_text(0).contains("[A]")
+		and defeat_arena.battle_hud.get_slot_text(1).contains("[S]")
+		and defeat_arena.battle_hud.get_slot_text(2).contains("[Z]")
+		and defeat_arena.battle_hud.get_slot_text(3).contains("[X]"),
+		"BattleHUD 2x2 move grid displays [A], [S], [Z], [X] key hints"
+	)
+	_assert_true(
+		defeat_arena.battle_hud.get_quick_slots_summary_text().contains("[1]상처약:")
+		and defeat_arena.battle_hud.get_quick_slots_summary_text().contains("[3]수퍼볼:"),
+		"BattleHUD displays 1~4 quick slots summary: '%s'" % defeat_arena.battle_hud.get_quick_slots_summary_text()
+	)
+	
+	# 4-0. Quick Slot 1~4 Healing Item (Potion) & Pokeball (Great Ball) usage in BattleArena
+	var lead_mon_in_battle: PokemonInstance = defeat_arena.player_pokemon
+	lead_mon_in_battle.current_hp = maxi(1, lead_mon_in_battle.max_hp - 12)
+	defeat_arena._update_hud()
+	var hp_before_potion: int = lead_mon_in_battle.current_hp
+	var potions_before: int = scene_mgr.player_inventory.get_item_count("potion")
+	var used_potion: Variant = defeat_arena.use_quick_slot_item(0) # Slot 0 = [1번] 상처약
+	_assert_true(
+		bool(used_potion) and lead_mon_in_battle.current_hp == lead_mon_in_battle.max_hp and scene_mgr.player_inventory.get_item_count("potion") == potions_before - 1,
+		"Quick slot 1 ([1번] 상처약) healed PlayerPokemon HP (%d -> %d) and deducted 1 potion (%d -> %d)" % [
+			hp_before_potion, lead_mon_in_battle.current_hp, potions_before, scene_mgr.player_inventory.get_item_count("potion")
+		]
+	)
+	_assert_true(
+		defeat_arena.player_actor.last_floating_text.begins_with("+") and defeat_arena.battle_hud.get_battle_message().contains("회복했다"),
+		"Healing item spawned green +HP floating text ('%s') and HUD message ('%s')" % [
+			defeat_arena.player_actor.last_floating_text, defeat_arena.battle_hud.get_battle_message()
+		]
+	)
+	# Using potion again at full HP must be blocked without consuming item
+	var potions_at_full: int = scene_mgr.player_inventory.get_item_count("potion")
+	var used_potion_when_full: Variant = defeat_arena.use_quick_slot_item(0)
+	_assert_true(
+		not bool(used_potion_when_full) and scene_mgr.player_inventory.get_item_count("potion") == potions_at_full,
+		"Using healing item at full HP is blocked and does not consume potion"
+	)
+	defeat_arena.player_actor.reset_cooldowns()
+	
+	# Quick slot 3 ([3번] 수퍼볼) throw test (aim away from enemy so battle continues for switch test)
+	defeat_arena.player_actor.global_position = Vector2(120, 240)
+	defeat_arena.enemy_actor.global_position = Vector2(420, 240)
+	var great_balls_before: int = scene_mgr.player_inventory.get_item_count("great_ball")
+	var quick_ball_proj: PokeballProjectile = defeat_arena.use_quick_slot_item(2, Vector2.LEFT) as PokeballProjectile
+	_assert_true(
+		quick_ball_proj != null and quick_ball_proj.ball_item_id == "great_ball" and absf(quick_ball_proj.ball_multiplier - 1.5) < 0.01,
+		"Quick slot 3 ([3번] 수퍼볼) spawned PokeballProjectile with ball_item_id='great_ball' (1.5x)"
+	)
+	_assert_true(
+		scene_mgr.player_inventory.get_item_count("great_ball") == great_balls_before - 1,
+		"Quick slot 3 deducted 1 great_ball from inventory (%d -> %d)" % [
+			great_balls_before, scene_mgr.player_inventory.get_item_count("great_ball")
+		]
+	)
+	if quick_ball_proj != null and is_instance_valid(quick_ball_proj):
+		quick_ball_proj.queue_free()
+	await _wait_frames(1)
 	
 	# 4-A. Q/E Quick Tag switch verification
 	defeat_arena.player_actor.global_position = Vector2(212, 236)

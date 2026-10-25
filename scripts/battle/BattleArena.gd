@@ -8,6 +8,8 @@ signal pokemon_captured(captured_pokemon: PokemonInstance)
 signal pokemon_capture_failed(wild_pokemon: PokemonInstance, shakes_done: int)
 signal pokemon_switched(new_pokemon: PokemonInstance, old_pokemon: PokemonInstance, party_index: int)
 signal switch_failed(reason: String)
+signal quick_item_used(slot_index: int, item_id: String, remaining_count: int)
+signal quick_item_failed(slot_index: int, reason: String)
 signal battle_ended(result: Dictionary)
 
 const ARENA_WIDTH: float = 640.0
@@ -22,6 +24,7 @@ var active_party_index: int = 0
 var switch_cooldown: float = 0.0
 var switch_cooldown_max: float = 4.0
 var is_party_menu_open: bool = false
+var active_quick_aim_slot: int = -1
 var active_snapshot: Dictionary = {}
 var last_stat_log: String = ""
 var outcome: String = ""
@@ -77,6 +80,18 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event.is_action_pressed("switch_party"):
 		open_battle_party_menu()
 		get_viewport().set_input_as_handled()
+	else:
+		for slot_idx in range(4):
+			var action_name: String = "item_slot_%d" % (slot_idx + 1)
+			if event.is_action_pressed(action_name):
+				handle_quick_slot_press(slot_idx)
+				get_viewport().set_input_as_handled()
+				return
+			elif event.is_action_released(action_name):
+				if active_quick_aim_slot == slot_idx:
+					handle_quick_slot_release(slot_idx)
+					get_viewport().set_input_as_handled()
+					return
 
 
 static func calculate_catch_formula_value(max_hp: int, current_hp: int, catch_rate: int, ball_multiplier: float = 1.0) -> float:
@@ -169,7 +184,7 @@ func setup_from_snapshot(snapshot: Dictionary = {}) -> void:
 		battle_hud.bind_actors(player_actor, enemy_actor)
 		battle_hud.update_party_status(battle_party, active_party_index, switch_cooldown, switch_cooldown_max)
 		if wild_pokemon != null:
-			battle_hud.set_battle_message("야생 %s(이)가 나타났다! [방향키:이동 / 1~4:기술 / Space:포획 / Q,E,Tab:교체]" % wild_pokemon.get_display_name())
+			battle_hud.set_battle_message("야생 %s(이)가 나타났다! [방향키:이동 / A,S,Z,X:기술 / 1~4:아이템 / Space:포획 / Q,W,Tab:교체]" % wild_pokemon.get_display_name())
 	
 	_update_hud()
 	last_stat_log = _format_battle_stat_log()
@@ -186,6 +201,129 @@ func get_player_inventory() -> Inventory:
 			sm.set("player_inventory", inv)
 		return sm.get("player_inventory") as Inventory
 	return null
+
+
+func handle_quick_slot_press(slot_index: int) -> Variant:
+	if is_battle_resolved or is_party_menu_open:
+		return false
+	var inv: Inventory = get_player_inventory()
+	if inv == null:
+		return false
+	var item_id: String = inv.get_quick_slot_item_id(slot_index)
+	var item_data: ItemData = inv.get_quick_slot_item_data(slot_index)
+	if item_id.is_empty() or item_data == null or not inv.has_item(item_id, 1):
+		return use_quick_slot_item(slot_index)
+	if item_data.pocket == ItemData.Pocket.POKEBALLS:
+		active_quick_aim_slot = slot_index
+		if player_actor != null:
+			player_actor.selected_ball_id = item_id
+		start_aiming_pokeball()
+		if battle_hud != null:
+			battle_hud.set_battle_message("[%d번] %s 조준 중... 방향키로 조준 후 떼면 투척!" % [slot_index + 1, item_data.display_name])
+		return true
+	return use_quick_slot_item(slot_index)
+
+
+func handle_quick_slot_release(slot_index: int) -> PokeballProjectile:
+	if active_quick_aim_slot == slot_index:
+		active_quick_aim_slot = -1
+	if player_actor == null or not player_actor.is_aiming_pokeball:
+		return null
+	var inv: Inventory = get_player_inventory()
+	var item_id: String = inv.get_quick_slot_item_id(slot_index) if inv != null else player_actor.selected_ball_id
+	if item_id.is_empty():
+		item_id = player_actor.selected_ball_id
+	var ball: PokeballProjectile = release_pokeball(item_id)
+	if ball != null and inv != null:
+		quick_item_used.emit(slot_index, item_id, inv.get_item_count(item_id))
+	return ball
+
+
+func use_quick_slot_item(
+	slot_index: int,
+	dir: Vector2 = Vector2.ZERO,
+	forced_outcome: int = -1,
+	rng: RandomNumberGenerator = null
+) -> Variant:
+	if is_battle_resolved or is_party_menu_open:
+		return false
+	var inv: Inventory = get_player_inventory()
+	if inv == null:
+		return false
+	var item_id: String = inv.get_quick_slot_item_id(slot_index)
+	if item_id.is_empty():
+		var empty_slot_msg: String = "[%d번] 등록된 아이템이 없다!" % (slot_index + 1)
+		if battle_hud != null:
+			battle_hud.set_battle_message(empty_slot_msg)
+		if player_actor != null:
+			player_actor.last_battle_message = empty_slot_msg
+		quick_item_failed.emit(slot_index, empty_slot_msg)
+		return false
+	
+	var item_data: ItemData = inv.get_quick_slot_item_data(slot_index)
+	if item_data == null:
+		item_data = ItemData.get_default_item(item_id)
+	var item_name: String = item_data.display_name if item_data != null else item_id
+	
+	if not inv.has_item(item_id, 1):
+		var no_item_msg: String = "남은 %s이(가) 없다!" % item_name
+		if battle_hud != null:
+			battle_hud.set_battle_message(no_item_msg)
+		if player_actor != null:
+			player_actor.last_battle_message = no_item_msg
+		quick_item_failed.emit(slot_index, no_item_msg)
+		return false
+	
+	# Case 1: Healing Item
+	if item_data != null and item_data.heal_amount > 0:
+		if player_pokemon == null or player_pokemon.is_fainted():
+			var faint_msg: String = "기절한 포켓몬에게는 사용할 수 없다!"
+			if battle_hud != null:
+				battle_hud.set_battle_message(faint_msg)
+			quick_item_failed.emit(slot_index, faint_msg)
+			return false
+		if player_pokemon.current_hp >= player_pokemon.max_hp:
+			var full_hp_msg: String = "%s의 체력이 이미 가득 차 있다!" % player_pokemon.get_display_name()
+			if battle_hud != null:
+				battle_hud.set_battle_message(full_hp_msg)
+			if player_actor != null:
+				player_actor.last_battle_message = full_hp_msg
+			quick_item_failed.emit(slot_index, full_hp_msg)
+			return false
+		
+		inv.remove_item(item_id, 1)
+		var before_hp: int = player_pokemon.current_hp
+		player_pokemon.heal(item_data.heal_amount)
+		var healed: int = player_pokemon.current_hp - before_hp
+		var rem_cnt: int = inv.get_item_count(item_id)
+		var heal_msg: String = "%s에게 %s을(를) 사용해 HP를 %d 회복했다!" % [
+			player_pokemon.get_display_name(),
+			item_name,
+			healed
+		]
+		if player_actor != null:
+			player_actor.play_heal_visual(healed)
+			player_actor.apply_shared_cooldown(0.8)
+			player_actor.last_battle_message = heal_msg
+		_update_hud()
+		if battle_hud != null:
+			battle_hud.set_battle_message(heal_msg)
+		quick_item_used.emit(slot_index, item_id, rem_cnt)
+		return true
+	
+	# Case 2: Pokeball Item
+	if item_data != null and item_data.pocket == ItemData.Pocket.POKEBALLS:
+		var ball: PokeballProjectile = throw_pokeball_at(dir, item_id, forced_outcome, rng)
+		if ball != null:
+			var rem_balls: int = inv.get_item_count(item_id)
+			quick_item_used.emit(slot_index, item_id, rem_balls)
+		return ball
+	
+	var unsupported_msg: String = "%s은(는) 지금 사용할 수 없다!" % item_name
+	if battle_hud != null:
+		battle_hud.set_battle_message(unsupported_msg)
+	quick_item_failed.emit(slot_index, unsupported_msg)
+	return false
 
 
 func start_aiming_pokeball(aim_dir: Vector2 = Vector2.ZERO) -> void:
