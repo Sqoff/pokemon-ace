@@ -33,7 +33,7 @@ const POKEBALL_PROJECTILE_SCENE: PackedScene = preload("res://scenes/battle/Poke
 @export var is_player_controlled: bool = false
 @export var team: int = 0
 @export var species_id: String = "cyndaquil"
-@export var base_move_speed: float = 100.0
+@export var base_move_speed: float = 67.0
 @export var sprint_speed_multiplier: float = 1.65
 @export var double_tap_window: float = 0.28
 @export var attack_cooldown: float = 0.20
@@ -115,7 +115,7 @@ func setup_from_instance(inst: PokemonInstance, p_is_player: bool = false, initi
 		pokemon_instance = inst
 		pokemon_instance.ensure_move_instances()
 		species_id = inst.get_species_id()
-		base_move_speed = clampf(85.0 + float(inst.speed) * 1.5, 85.0, 150.0)
+		base_move_speed = clampf((85.0 + float(inst.speed) * 1.5) * (2.0 / 3.0), 56.0, 100.0)
 	is_player_controlled = p_is_player
 	team = 0 if p_is_player else 1
 	attack_stage = 0
